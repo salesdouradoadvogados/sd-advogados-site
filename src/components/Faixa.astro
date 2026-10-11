@@ -1,0 +1,22 @@
+---
+// Faixa de contato, igual em toda página. O botão do WhatsApp só aparece
+// quando o número do escritório estiver no site.config.ts (decisão nº 9).
+import { site } from '../site.config';
+
+const whatsapp = site.canais.whatsapp;
+const linkWhatsapp = whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}` : null;
+---
+<section class="faixa navy" id="conversar" aria-labelledby="conversar-titulo">
+  <div class="wrap faixa-in">
+    <div>
+      <p class="eyebrow">Conversar com o escritório</p>
+      <h2 class="h2" id="conversar-titulo">Conte o que está acontecendo.</h2>
+      <p class="lead">A equipe lê, entende o seu caso e entra em contato pelo WhatsApp para alinhar os próximos passos. Leva cerca de três minutos.</p>
+    </div>
+    <div class="faixa-acoes">
+      <a class="btn btn-gold" href={site.canais.formularioUrl}>Começar pelo formulário</a>
+      {linkWhatsapp && <a class="btn btn-line" href={linkWhatsapp}>Falar pelo WhatsApp</a>}
+      <p class="faixa-nota">{linkWhatsapp ? 'O formulário e o WhatsApp são do escritório.' : 'O formulário é do escritório.'} Seus dados não saem daqui.</p>
+    </div>
+  </div>
+</section>

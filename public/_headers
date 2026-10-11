@@ -1,0 +1,36 @@
+# Cabeçalhos do Cloudflare Pages (spec v2, §9.2).
+#
+# Regra copiada do public/_headers do portal, com os motivos de lá:
+# - HTML revalida sempre (max-age=0, must-revalidate), para um deploy novo
+#   valer na hora e nenhuma aba guardar uma página que aponta para arquivos
+#   que já não existem.
+# - Arquivos com hash no nome guardam por um ano, SEM "immutable": foi o
+#   "immutable" que, em 21/08, deixou uma resposta errada presa no navegador
+#   mesmo depois do conserto (incidente do portal).
+# O Astro gera esses arquivos em /_astro/, não em /assets/ como o Vite do
+# portal (D12).
+#
+# As regras se SOMAM: um arquivo que casa com /* e com /_astro/* recebe os
+# dois Cache-Control colados ("max-age=0, ..., max-age=31536000"), o que o
+# CRM já tinha observado em 21/08 e o `wrangler pages dev` confirmou aqui em
+# 11/10. Por isso as regras de cache longo começam com "! Cache-Control", que
+# tira o valor herdado da regra geral antes de pôr o próprio.
+
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+
+/_astro/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000
+
+# Fontes não têm hash no nome: se um arquivo mudar, ele ganha nome novo.
+/fonts/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000
+
+# Prévias (spec v2, §7 e §11): nenhum domínio *.pages.dev é indexado.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex, nofollow

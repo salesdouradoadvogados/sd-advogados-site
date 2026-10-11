@@ -1,0 +1,17 @@
+---
+// Quem responde por uma página: foto, nome, OAB e a situação da revisão.
+import { getEntry, type CollectionEntry } from 'astro:content';
+
+interface Props {
+  pessoa: CollectionEntry<'pessoas'>['id'];
+  /** Linha abaixo do nome, depois da OAB. */
+  linha: string;
+}
+const { pessoa, linha } = Astro.props;
+const p = await getEntry('pessoas', pessoa);
+if (!p) throw new Error(`Pessoa "${pessoa}" não existe em src/content/pessoas/.`);
+---
+<p class="ass">
+  <img src={p.data.foto} alt="" width="48" height="48" loading="lazy" decoding="async" />
+  <span><b>{p.data.nome}</b>{p.data.oab} · {linha}</span>
+</p>

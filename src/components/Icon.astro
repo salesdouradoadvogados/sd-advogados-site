@@ -1,0 +1,39 @@
+---
+// Ícones Lucide em SVG estático (spec v2, §4.6): lidos do pacote lucide-static
+// no build, sem JavaScript na página. Só entram os ícones que o site usa, para
+// o build não carregar os 2 mil arquivos do pacote.
+import arrowRight from 'lucide-static/icons/arrow-right.svg?raw';
+import search from 'lucide-static/icons/search.svg?raw';
+import x from 'lucide-static/icons/x.svg?raw';
+import logOut from 'lucide-static/icons/log-out.svg?raw';
+import menu from 'lucide-static/icons/menu.svg?raw';
+import printer from 'lucide-static/icons/printer.svg?raw';
+import share2 from 'lucide-static/icons/share-2.svg?raw';
+import plus from 'lucide-static/icons/plus.svg?raw';
+import fileText from 'lucide-static/icons/file-text.svg?raw';
+
+const fontes = {
+  'arrow-right': arrowRight,
+  search,
+  x,
+  'log-out': logOut,
+  menu,
+  printer,
+  'share-2': share2,
+  plus,
+  'file-text': fileText,
+} as const;
+
+export type NomeDoIcone = keyof typeof fontes;
+
+interface Props {
+  name: NomeDoIcone;
+  class?: string;
+}
+
+const { name, class: classe } = Astro.props;
+// O miolo do SVG (paths, círculos), sem o <svg> do pacote: o site põe o seu,
+// com a classe .ico, que dá tamanho e traço.
+const miolo = fontes[name].replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '').trim();
+---
+<svg class:list={['ico', classe]} aria-hidden="true" focusable="false" viewBox="0 0 24 24" set:html={miolo} />

@@ -1,0 +1,25 @@
+---
+// Botão de imprimir. Nasce escondido e só aparece com JavaScript: sem ele, o
+// botão não faria nada (a impressão do navegador continua funcionando, e a
+// folha de impressão é a mesma).
+import Icon from './Icon.astro';
+
+interface Props {
+  /** "pagina" imprime a folha limpa inteira; "documentos", só a lista. */
+  alvo?: 'pagina' | 'documentos';
+  rotulo?: string;
+}
+const { alvo = 'pagina', rotulo = 'Imprimir' } = Astro.props;
+---
+<button type="button" class="btn btn-line" data-imprimir={alvo} hidden><Icon name="printer" /> {rotulo}</button>
+
+<script>
+  for (const b of document.querySelectorAll<HTMLButtonElement>('button[data-imprimir]')) {
+    b.hidden = false;
+    b.addEventListener('click', () => {
+      document.documentElement.dataset.imprimir = b.dataset.imprimir;
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', () => delete document.documentElement.dataset.imprimir);
+</script>

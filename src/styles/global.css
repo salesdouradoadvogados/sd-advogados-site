@@ -1,0 +1,627 @@
+/* Folha do site público — Sales Dourado Advogados.
+ *
+ * Origem: a prévia v2 aprovada por Leilson em 11/10/2026 (docs/previa-v2/),
+ * reescrita sobre os tokens do portal (spec v2, §4). Nenhuma cor solta: toda
+ * cor sai de uma variável do :root abaixo. As divergências em relação ao
+ * portal estão na tabela do §4.8 da spec e são comentadas aqui onde aparecem.
+ *
+ * Ordem: base do Tailwind, componentes do Tailwind, as receitas do site em CSS
+ * puro (fora de @layer, para o Tailwind não as podar), utilitários por último
+ * (um utilitário sempre vence a receita).
+ */
+@tailwind base;
+@tailwind components;
+
+/* ------------------------------------------------------------------ fontes */
+/* Arquivos próprios, subconjunto latino, da distribuição OFL do Fontsource
+ * (D3). O itálico da Playfair é adição do site: o portal não o carrega (D2). */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin-wght-normal.woff2') format('woff2-variations'), url('/fonts/inter-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/playfair-display-latin-wght-normal.woff2') format('woff2-variations'), url('/fonts/playfair-display-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/playfair-display-latin-wght-italic.woff2') format('woff2-variations'), url('/fonts/playfair-display-latin-wght-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ------------------------------------------------------------------ tokens */
+/* Blocos :root do portal (src/index.css), lado claro. O tema escuro não vem:
+ * o site segue o lado da cliente, que é sempre claro (spec v2, §4). */
+:root {
+  --background: 220 20% 97%;
+  --foreground: 220 40% 13%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 40% 13%;
+  --primary: 218 55% 17%;
+  --primary-foreground: 40 45% 56%;
+  --muted: 220 15% 94%;
+  --muted-foreground: 220 10% 46%;
+  --accent: 40 45% 56%;
+  --accent-foreground: 220 60% 13%;
+  --destructive: 0 72% 51%;
+  --border: 220 20% 88%;
+  --ring: 40 45% 56%;
+
+  --gold: 40 45% 56%;
+  --gold-light: 40 45% 72%;
+  --gold-dark: 40 45% 42%;
+  --navy: 218 55% 17%;
+  --navy-light: 218 40% 28%;
+  --navy-dark: 218 60% 11%;
+  --navy-ink: 218 55% 17%;
+  --ivory: 39 37% 95%;
+  --sand: 41 31% 69%;
+
+  /* Adições do site (spec v2, §4.2 e §4.8). Degraus dos tokens do portal, só
+   * para texto pequeno direto sobre marfim, onde os tons do portal ficam
+   * abaixo de AA: muted-foreground dá 4,43:1 e gold-dark, 3,6:1. */
+  --ink-secondary: 220 10% 42%; /* 5,1:1 sobre marfim */
+  --gold-ink: 41 40% 36%;       /* 4,8:1 sobre marfim, 5,2:1 sobre branco */
+}
+
+/* ------------------------------------------------------------------ base */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  color: hsl(var(--foreground));
+  background: hsl(var(--ivory));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+a { color: inherit; }
+img { display: block; max-width: 100%; height: auto; }
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  font-variant-numeric: lining-nums;
+}
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+dl, dd { margin: 0; }
+/* O atributo hidden vence qualquer receita (.btn define display). */
+[hidden] { display: none !important; }
+
+/* Seleção e foco: receita do portal. O anel de foco usa gold-ink sobre fundo
+ * claro (o dourado puro dá 2,3:1 sobre marfim e não chega aos 3:1 que o foco
+ * pede, WCAG 1.4.11) e o dourado do portal sobre navy. */
+::selection { background: hsl(var(--gold) / 0.28); }
+:focus-visible { outline: 2px solid hsl(var(--gold-ink)); outline-offset: 2px; border-radius: 2px; }
+.navy :focus-visible, .navy-dark :focus-visible { outline-color: hsl(var(--gold)); }
+:target { scroll-margin-top: 24px; }
+
+.pular {
+  position: absolute; left: 16px; top: -64px; z-index: 50;
+  padding: 12px 18px; border-radius: 4px;
+  background: hsl(var(--navy)); color: hsl(var(--ivory));
+  font-weight: 600; font-size: 15px; text-decoration: none;
+}
+.pular:focus { top: 12px; }
+
+/* ------------------------------------------------------------------ estrutura */
+.serif { font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; }
+/* O itálico é a voz da leitora (spec, §4.3). Não usar para ênfase solta. */
+.it { font-style: italic; font-weight: 500; }
+.wrap { max-width: 1216px; margin: 0 auto; padding: 0 40px; }
+.sec { padding: 120px 0; }
+.sec-sm { padding: 88px 0; }
+.navy { background: hsl(var(--navy)); color: hsl(var(--ivory)); }
+.navy-dark { background: hsl(var(--navy-dark)); color: hsl(var(--ivory)); }
+.white { background: hsl(var(--card)); }
+
+/* Micro-rótulo: divergência aprovada (§4.8). 12px, caixa alta, tracking do
+ * micro-rótulo do portal; gold-ink sobre claro, gold sobre navy. */
+.eyebrow { font-size: 12px; line-height: 1.4; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; color: hsl(var(--gold-ink)); margin: 0 0 20px; }
+.navy .eyebrow, .navy-dark .eyebrow { color: hsl(var(--gold)); }
+.display { font-size: 68px; line-height: 1.04; }
+.h2 { font-size: 46px; line-height: 1.1; }
+.h3 { font-size: 27px; line-height: 1.25; }
+.h4 { font-size: 21px; line-height: 1.3; }
+.lead { font-size: 20px; line-height: 1.55; }
+.muted { color: hsl(var(--ink-secondary)); }
+.navy .muted, .navy-dark .muted { color: hsl(var(--sand)); }
+.small { font-size: 14px; line-height: 1.5; }
+.sec-head { max-width: 760px; margin-bottom: 56px; }
+.sec-head .h2 { margin-bottom: 22px; }
+.rule { width: 56px; height: 2px; background: hsl(var(--gold)); margin: 28px 0 0; }
+.grid-7-5 { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: center; }
+.grid-8-4 { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: 80px; align-items: start; }
+.grid-5-7 { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 72px; align-items: start; }
+
+/* ------------------------------------------------------------------ botões e links */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; padding: 0 30px; border-radius: 4px; border: 1px solid transparent; font-weight: 600; font-size: 15px; line-height: 1.2; letter-spacing: .01em; text-decoration: none; text-align: center; cursor: pointer; font-family: inherit; background: none; transition: transform .2s, box-shadow .2s, border-color .2s, background-color .2s; }
+.btn-gold { background: hsl(var(--gold)); color: hsl(var(--accent-foreground)); border-color: hsl(var(--gold)); }
+/* Hover por elevação, como o CTA do portal. O gold-dark do portal não serve de
+ * fundo aqui: com o texto accent-foreground ele dá 4,3:1. */
+.btn-gold:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -10px hsl(var(--navy-dark) / .55); }
+.btn-line { background: transparent; color: hsl(var(--navy-ink)); border-color: hsl(var(--navy) / .32); }
+.btn-line:hover { border-color: hsl(var(--navy)); }
+.navy .btn-line, .navy-dark .btn-line { color: hsl(var(--ivory)); border-color: hsl(var(--ivory) / .38); }
+.navy .btn-line:hover, .navy-dark .btn-line:hover { border-color: hsl(var(--ivory)); }
+.btn-sm { min-height: 44px; padding: 0 20px; font-size: 14px; }
+.arrow { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: hsl(var(--navy-ink)); text-decoration: none; }
+.arrow .ico { transition: transform .2s; }
+a.arrow:hover .ico, a:hover > .arrow .ico { transform: translateX(3px); }
+.navy .arrow, .navy-dark .arrow { color: hsl(var(--gold)); }
+.ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 32px; margin-top: 40px; }
+/* Link no meio de um texto: sublinhado, porque a cor sozinha não basta
+ * (WCAG 1.4.1; o navy sobre o cinza do texto dá 2,7:1). */
+.link, .sit-nota a, .nums-nota a, .busca-vazio a, .meta a { color: hsl(var(--navy-ink)); text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+/* ------------------------------------------------------------------ prévia */
+/* Faixa que só existe nas prévias: diz que o texto é exemplo e que nada aqui
+ * é indexado. Some no build de produção. */
+.previa { background: hsl(var(--navy-dark)); color: hsl(var(--sand)); font-size: 13px; line-height: 1.5; }
+.previa .wrap { padding-top: 8px; padding-bottom: 8px; }
+.previa b { color: hsl(var(--ivory)); font-weight: 600; }
+.aviso-exemplo { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 32px; padding: 14px 18px; border: 1px dashed hsl(var(--gold-ink) / .6); border-radius: 4px; background: hsl(var(--card)); font-size: 14px; line-height: 1.55; color: hsl(var(--foreground)); max-width: 760px; }
+.aviso-exemplo b { font-weight: 600; }
+.a-confirmar { display: inline-block; margin-left: 8px; padding: 1px 8px; border: 1px solid hsl(var(--gold-ink) / .45); border-radius: 999px; font-family: 'Inter', system-ui, sans-serif; font-size: 11px; font-style: normal; font-weight: 600; letter-spacing: .04em; line-height: 1.6; color: hsl(var(--gold-ink)); vertical-align: middle; white-space: nowrap; }
+.navy .a-confirmar, .navy-dark .a-confirmar { color: hsl(var(--gold)); border-color: hsl(var(--gold) / .5); }
+.em-prep { font-size: 13px; font-weight: 500; color: hsl(var(--ink-secondary)); white-space: nowrap; }
+.navy .em-prep { color: hsl(var(--sand)); }
+
+/* ------------------------------------------------------------------ cabeçalho */
+/* Header marfim: divergência aprovada (§4.8). */
+.hdr { background: hsl(var(--ivory)); border-bottom: 1px solid hsl(var(--border)); position: relative; }
+.hdr-in { display: flex; align-items: center; gap: 40px; min-height: 92px; }
+.marca { display: flex; align-items: center; gap: 14px; text-decoration: none; color: hsl(var(--navy-ink)); }
+.marca-mono { width: 36px; height: 42px; object-fit: contain; }
+.marca-txt { display: flex; flex-direction: column; gap: 3px; line-height: 1; }
+.marca-nome { font-size: 15px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+.marca-sub { font-size: 9px; font-weight: 500; letter-spacing: .36em; text-transform: uppercase; color: hsl(var(--gold-ink)); }
+.nav { display: flex; gap: 32px; margin-left: auto; }
+.nav a { font-size: 15px; font-weight: 500; text-decoration: none; color: hsl(var(--navy-ink)); padding: 8px 0; border-bottom: 1px solid transparent; }
+.nav a:hover, .nav a[aria-current='page'] { border-bottom-color: hsl(var(--gold)); }
+.hdr-acoes { display: flex; align-items: center; gap: 16px; }
+/* Saída rápida (P13, §8.1). Sem JavaScript, é um link comum. */
+.sair { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; font-size: 14px; font-weight: 500; color: hsl(var(--ink-secondary)); text-decoration: none; border-radius: 4px; }
+.sair:hover { color: hsl(var(--navy-ink)); background: hsl(var(--navy) / .05); }
+/* Menu do celular em details/summary: abre sem JavaScript e no teclado. */
+.menu-m { display: none; }
+.menu-m > summary { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid hsl(var(--border)); border-radius: 4px; color: hsl(var(--navy-ink)); cursor: pointer; list-style: none; }
+.menu-m > summary::-webkit-details-marker { display: none; }
+.menu-m .ico-fechar { display: none; }
+.menu-m[open] .ico-abrir { display: none; }
+.menu-m[open] .ico-fechar { display: block; }
+.menu-m nav { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: hsl(var(--ivory)); border-bottom: 1px solid hsl(var(--border)); box-shadow: 0 16px 24px -16px hsl(var(--navy-dark) / .25); }
+.menu-m nav ul { padding: 8px 20px 16px; }
+.menu-m nav li + li { border-top: 1px solid hsl(var(--border)); }
+.menu-m nav a { display: flex; align-items: center; min-height: 52px; font-size: 17px; font-weight: 500; text-decoration: none; color: hsl(var(--navy-ink)); }
+.crumbs ol { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: hsl(var(--ink-secondary)); padding: 22px 0 0; }
+.crumbs li { display: flex; gap: 10px; }
+.crumbs a { text-decoration: none; color: hsl(var(--ink-secondary)); }
+.crumbs a:hover { color: hsl(var(--navy-ink)); text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 4px; }
+.crumbs .sep { color: hsl(var(--sand)); }
+
+/* ------------------------------------------------------------------ herói do Início */
+/* Herói marfim com a foto: divergência aprovada (§4.8). */
+.hero { padding: 72px 0 0; overflow: hidden; }
+.hero .display { margin-bottom: 28px; }
+.hero .lead { max-width: 560px; }
+.selos { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 56px; padding-top: 28px; border-top: 1px solid hsl(var(--border)); }
+.selos li { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: hsl(var(--ink-secondary)); }
+.selos li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: hsl(var(--gold)); }
+.hero-foto { position: relative; height: 660px; align-self: end; }
+.foto-placa { position: absolute; left: 0; right: -56px; top: 120px; bottom: 0; background: hsl(var(--sand)); border-radius: 4px; }
+.foto-img { position: absolute; left: 0; bottom: 0; width: 420px; height: auto; }
+.foto-legenda { position: absolute; right: 0; bottom: -36px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: hsl(var(--ink-secondary)); }
+.hero-base { height: 112px; }
+
+/* ------------------------------------------------------------------ busca */
+.busca { position: relative; max-width: 640px; margin: 0 0 48px; }
+.busca-campo { display: flex; align-items: center; gap: 14px; border-bottom: 1px solid hsl(var(--navy)); padding: 4px 0 10px; color: hsl(var(--navy-ink)); }
+.busca-campo input { flex: 1 1 auto; min-width: 0; min-height: 48px; border: 0; background: transparent; font: inherit; font-size: 19px; color: hsl(var(--foreground)); outline: none; }
+.busca-campo input::placeholder { color: hsl(var(--ink-secondary)); opacity: 1; }
+.busca-campo input::-webkit-search-cancel-button { display: none; }
+.busca-campo:focus-within { box-shadow: 0 1px 0 0 hsl(var(--navy)); }
+.busca-campo button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; background: transparent; color: hsl(var(--navy-ink)); cursor: pointer; }
+.busca-res { margin-top: 8px; border: 1px solid hsl(var(--border)); border-radius: 4px; background: hsl(var(--card)); }
+.busca-res ul > li + li { border-top: 1px solid hsl(var(--border)); }
+.busca-res a { display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; text-decoration: none; }
+.busca-res a:hover .q { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 4px; }
+.busca-res .q { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 19px; line-height: 1.35; color: hsl(var(--navy-ink)); }
+.busca-res .s { font-size: 13px; color: hsl(var(--ink-secondary)); }
+.busca-vazio { padding: 16px 18px; font-size: 15px; color: hsl(var(--ink-secondary)); }
+
+/* ------------------------------------------------------------------ lista de situações */
+.sit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 64px; border-top: 1px solid hsl(var(--border)); }
+.sit-grid li { border-bottom: 1px solid hsl(var(--border)); }
+.sit { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 22px 0; text-decoration: none; color: hsl(var(--navy-ink)); }
+.sit-n { font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: hsl(var(--gold-ink)); font-variant-numeric: lining-nums; }
+.sit-t { display: block; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 25px; line-height: 1.25; }
+.sit-d { display: block; margin-top: 5px; font-size: 14px; color: hsl(var(--ink-secondary)); }
+.sit .ico { color: hsl(var(--sand)); transition: transform .2s, color .2s; }
+a.sit:hover .ico { color: hsl(var(--navy)); transform: translateX(4px); }
+a.sit:hover .sit-t { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.sit-nota { margin-top: 32px; font-size: 15px; color: hsl(var(--ink-secondary)); }
+
+/* ------------------------------------------------------------------ áreas */
+/* Grade de cartões: divergência aprovada (§4.8). */
+.areas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.area { display: flex; flex-direction: column; gap: 14px; min-height: 260px; padding: 36px 32px 32px; border: 1px solid hsl(var(--ivory) / .18); border-radius: 4px; text-decoration: none; color: hsl(var(--ivory)); transition: border-color .2s, background-color .2s; }
+a.area:hover { border-color: hsl(var(--gold)); background: hsl(var(--ivory) / .04); }
+.area .h3 { color: hsl(var(--ivory)); }
+.area p { font-size: 15px; line-height: 1.6; color: hsl(var(--sand)); flex: 1 1 auto; }
+.area .arrow { font-size: 14px; }
+
+/* ------------------------------------------------------------------ passos */
+.passos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 48px 40px; }
+.passo { position: relative; padding-top: 28px; border-top: 1px solid hsl(var(--border)); }
+.passo::before { content: ''; position: absolute; top: -1px; left: 0; height: 2px; width: 40px; background: hsl(var(--gold)); }
+.passo .num { display: block; font-family: 'Playfair Display', Georgia, serif; font-size: 44px; line-height: 1; color: hsl(var(--gold-ink)); margin-bottom: 18px; font-variant-numeric: lining-nums; }
+.passo .h4 { margin-bottom: 12px; }
+.passo p { font-size: 15px; line-height: 1.6; color: hsl(var(--ink-secondary)); }
+
+/* ------------------------------------------------------------------ quem responde e números */
+.quem { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 72px; align-items: center; }
+.quem-foto { position: relative; height: 380px; }
+.quem-foto .placa { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; background: hsl(var(--sand)); border-radius: 4px; }
+.quem-foto img { position: absolute; left: 0; bottom: 0; width: 250px; }
+.quem .h2 { font-size: 40px; margin-bottom: 8px; }
+.quem .cargo { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: hsl(var(--gold-ink)); margin-bottom: 24px; font-weight: 600; }
+.quem p + p { margin-top: 16px; }
+/* Fileira de números: divergência aprovada (§4.8, L10). */
+.nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 88px; padding-top: 48px; border-top: 1px solid hsl(var(--border)); }
+.num-v { display: block; font-family: 'Playfair Display', Georgia, serif; font-size: 60px; line-height: 1; color: hsl(var(--navy-ink)); letter-spacing: -.02em; font-variant-numeric: lining-nums; }
+.num-v sup { font-size: 26px; vertical-align: top; top: 8px; position: relative; color: hsl(var(--gold-ink)); }
+.num-l { display: block; margin-top: 14px; font-size: 15px; line-height: 1.5; color: hsl(var(--ink-secondary)); max-width: 260px; }
+.nums-nota { margin-top: 40px; padding-top: 20px; border-top: 1px solid hsl(var(--border)); font-size: 13px; color: hsl(var(--ink-secondary)); }
+
+/* ------------------------------------------------------------------ além do post */
+.posts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.post { display: flex; flex-direction: column; gap: 18px; padding: 32px; border: 1px solid hsl(var(--border)); border-radius: 4px; background: hsl(var(--card)); text-decoration: none; color: hsl(var(--navy-ink)); min-height: 240px; }
+a.post:hover { border-color: hsl(var(--gold)); }
+.post .tag { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; color: hsl(var(--gold-ink)); }
+.post .tese { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 23px; line-height: 1.3; flex: 1 1 auto; }
+
+/* ------------------------------------------------------------------ faixa de contato */
+.faixa { padding: 104px 0; }
+.faixa-in { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: center; }
+.faixa .h2 { margin-bottom: 22px; }
+.faixa .lead { color: hsl(var(--sand)); }
+.faixa-acoes { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.faixa-acoes .btn { min-width: 300px; }
+.faixa-nota { font-size: 14px; color: hsl(var(--sand)); }
+
+/* ------------------------------------------------------------------ rodapé */
+.rod { padding: 80px 0 40px; font-size: 14px; }
+.rod-top { display: grid; grid-template-columns: minmax(0, 4fr) repeat(4, minmax(0, 2fr)); gap: 48px; padding-bottom: 56px; border-bottom: 1px solid hsl(var(--ivory) / .18); }
+.rod-logo { width: 200px; height: auto; margin-bottom: 22px; }
+.rod-tag { color: hsl(var(--sand)); max-width: 280px; line-height: 1.6; }
+.rod h2 { font-family: 'Inter', system-ui, sans-serif; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: hsl(var(--gold)); margin: 0 0 18px; font-weight: 600; }
+.rod li + li { margin-top: 12px; }
+.rod a { color: hsl(var(--ivory)); text-decoration: none; opacity: .9; }
+.rod a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: hsl(var(--gold)); }
+.rod .em-prep-rod { color: hsl(var(--sand)); }
+.rod-legal { padding: 36px 0 0; color: hsl(var(--sand)); line-height: 1.6; max-width: 820px; }
+.rod-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; margin-top: 40px; padding-top: 24px; border-top: 1px solid hsl(var(--ivory) / .18); color: hsl(var(--sand)); font-size: 13px; }
+.rod-base ul { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.rod-base li + li { margin-top: 0; }
+
+/* ------------------------------------------------------------------ páginas internas */
+.hero-int { padding: 40px 0 80px; }
+.hero-int .display { font-size: 62px; margin: 0 0 26px; }
+.hero-int .lead { max-width: 600px; }
+.ficha { padding: 36px 36px 32px; border: 1px solid hsl(var(--border)); border-radius: 4px; background: hsl(var(--card)); }
+.ficha h2, .ficha h3 { font-family: 'Inter', system-ui, sans-serif; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: hsl(var(--gold-ink)); margin: 0 0 18px; font-weight: 600; }
+.ficha ul li { padding: 11px 0; border-top: 1px solid hsl(var(--border)); font-size: 15px; }
+.ficha ul li:first-child { border-top: 0; padding-top: 0; }
+.ficha ul a { color: hsl(var(--navy-ink)); text-decoration: none; }
+.ficha ul a:hover { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 4px; }
+.ficha .quem-l { margin-top: 26px; padding-top: 22px; border-top: 1px solid hsl(var(--border)); font-size: 14px; color: hsl(var(--muted-foreground)); line-height: 1.6; }
+.ficha .quem-l strong { display: block; color: hsl(var(--foreground)); font-weight: 600; font-size: 15px; }
+.ficha .acoes { display: flex; flex-direction: column; gap: 10px; margin-top: 26px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: hsl(var(--ink-secondary)); margin-top: 26px; }
+.meta b { font-weight: 600; color: hsl(var(--foreground)); }
+
+/* ------------------------------------------------------------------ o fio: etapas */
+/* A assinatura do site (§4.4): o fio dourado liga a sequência. Marcadores
+ * neutros: aqui não há processo, então não há estado. */
+.fio { position: relative; padding-left: 72px; }
+.fio::before { content: ''; position: absolute; left: 19px; top: 14px; bottom: 14px; width: 1px; background: hsl(var(--gold)); }
+.etapa { position: relative; padding: 0 0 56px; }
+.etapa:last-child { padding-bottom: 0; }
+.etapa-n { position: absolute; left: -72px; top: -2px; width: 40px; height: 40px; border-radius: 50%; background: hsl(var(--ivory)); border: 1px solid hsl(var(--gold)); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', Georgia, serif; font-size: 16px; color: hsl(var(--gold-ink)); }
+.white .etapa-n { background: hsl(var(--card)); }
+.etapa .h3 { margin-bottom: 14px; }
+.etapa p { max-width: 620px; }
+/* Momento autoral da Situação (§4.5): as etapas entram em cascata. */
+.cascata > * { animation: fade-in .5s ease-out both; animation-delay: calc(var(--i, 0) * 80ms); }
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.perg { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.perg a, .perg .prevista { display: inline-flex; align-items: baseline; gap: 10px; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 19px; line-height: 1.35; color: hsl(var(--navy-ink)); text-decoration: none; }
+.perg a::before, .perg .prevista::before { content: ''; width: 18px; height: 1px; background: hsl(var(--gold)); flex: none; position: relative; top: -5px; }
+.perg a:hover { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.perg .prevista { color: hsl(var(--ink-secondary)); }
+.perg .prevista .em-prep, .q-grid .em-prep, .cartao .em-prep { font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-size: 12px; }
+
+/* situações de uma área, ligadas pelo fio */
+.sit-fio { position: relative; padding-left: 56px; }
+.sit-fio::before { content: ''; position: absolute; left: 5px; top: 16px; bottom: 16px; width: 1px; background: hsl(var(--gold)); }
+.sit-fio > li { position: relative; border-top: 1px solid hsl(var(--border)); }
+.sit-fio > li:first-child { border-top: 0; }
+.sit-fio > li::before { content: ''; position: absolute; left: -55px; top: 38px; width: 11px; height: 11px; border-radius: 50%; background: hsl(var(--gold)); }
+.sit-fio .linha { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: center; padding: 30px 0; text-decoration: none; color: hsl(var(--navy-ink)); }
+.sit-fio .sit-t { font-size: 28px; }
+.sit-fio .sit-d { font-size: 15px; margin-top: 8px; }
+.sit-fio .arrow { font-size: 14px; white-space: nowrap; }
+a.linha:hover .sit-t { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 5px; text-decoration-thickness: 1px; }
+
+/* listas de perguntas, em duas colunas */
+.q-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 64px; border-top: 1px solid hsl(var(--border)); }
+.q-grid li { border-bottom: 1px solid hsl(var(--border)); }
+.q-grid .linha { display: flex; flex-direction: column; gap: 6px; padding: 22px 0; text-decoration: none; color: hsl(var(--navy-ink)); }
+.q-grid .q { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 22px; line-height: 1.3; }
+.q-grid .s { font-size: 13px; color: hsl(var(--ink-secondary)); }
+.white .q-grid .s, .white .sit-d, .white .sit-nota { color: hsl(var(--muted-foreground)); }
+a.linha:hover .q { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.q-grid .prevista .q { color: hsl(var(--ink-secondary)); }
+
+/* cartões em texto: divergência aprovada (§4.8) */
+.cartoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.cartao { padding: 32px; border: 1px solid hsl(var(--border)); border-radius: 4px; background: hsl(var(--card)); }
+.navy .cartao { background: transparent; border-color: hsl(var(--ivory) / .18); }
+.cartao .h4 { margin-bottom: 12px; }
+.cartao p { font-size: 15px; line-height: 1.6; color: hsl(var(--muted-foreground)); }
+.navy .cartao p { color: hsl(var(--sand)); }
+.cartao a, .cartao .prevista { display: block; margin-top: 14px; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 18px; color: hsl(var(--navy-ink)); text-decoration: none; }
+.cartao .prevista { color: hsl(var(--muted-foreground)); }
+.cartao a:hover { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 4px; }
+
+/* perguntas frequentes: details/summary, abre sem JavaScript */
+.faq { border-top: 1px solid hsl(var(--border)); }
+.faq details { border-bottom: 1px solid hsl(var(--border)); }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; cursor: pointer; list-style: none; font-family: 'Playfair Display', Georgia, serif; font-size: 22px; line-height: 1.3; color: hsl(var(--navy-ink)); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .ico { color: hsl(var(--gold-ink)); transition: transform .2s; }
+.faq details[open] summary .ico { transform: rotate(45deg); }
+.faq .r { padding: 0 0 26px; max-width: 720px; color: hsl(var(--foreground)); }
+
+/* termos */
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chips > * { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 1px solid hsl(var(--border)); border-radius: 999px; font-size: 14px; font-weight: 500; color: hsl(var(--navy-ink)); text-decoration: none; background: hsl(var(--card)); }
+.chips a:hover { border-color: hsl(var(--gold)); }
+
+/* lista de conferência */
+.check li { position: relative; padding: 12px 0 12px 34px; border-top: 1px solid hsl(var(--border)); }
+.check li:first-child { border-top: 0; }
+.check li::before { content: ''; position: absolute; left: 4px; top: 19px; width: 14px; height: 14px; border: 1px solid hsl(var(--gold-ink)); border-radius: 2px; }
+
+/* resposta direta e corpo da resposta */
+/* Cartão-resposta: receita de destaque institucional do portal (filete
+ * esquerdo dourado, §4.4). */
+.direta { position: relative; padding: 36px 40px 36px 44px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 4px; }
+.direta::before { content: ''; position: absolute; left: -1px; top: 28px; bottom: 28px; width: 3px; background: hsl(var(--gold)); }
+.direta .eyebrow { margin-bottom: 14px; }
+.direta p:not(.eyebrow) { font-size: 21px; line-height: 1.55; color: hsl(var(--foreground)); }
+.corpo { max-width: 680px; }
+.corpo .h3, .corpo h2 { font-size: 27px; line-height: 1.25; margin: 56px 0 18px; }
+.corpo > .h3:first-child { margin-top: 0; }
+.corpo p + p { margin-top: 16px; }
+.corpo ul.pontos li, .corpo .prosa ul li { position: relative; padding: 14px 0 14px 26px; border-top: 1px solid hsl(var(--border)); }
+.corpo ul.pontos li:first-child, .corpo .prosa ul li:first-child { border-top: 0; }
+.corpo ul.pontos li::before, .corpo .prosa ul li::before { content: ''; position: absolute; left: 0; top: 26px; width: 12px; height: 1px; background: hsl(var(--gold)); }
+.corpo ul.pontos strong, .corpo .prosa ul strong { font-weight: 600; color: hsl(var(--navy-ink)); }
+.lei li + li a { border-top: 1px solid hsl(var(--border)); }
+.lei a { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; text-decoration: none; color: hsl(var(--navy-ink)); font-size: 15px; }
+.lei a span { color: hsl(var(--muted-foreground)); font-size: 13px; white-space: nowrap; }
+.lei a:hover { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 4px; }
+.aside { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 28px; }
+.aside .bloco { padding-top: 18px; border-top: 1px solid hsl(var(--border)); }
+.aside .bloco:first-child { border-top: 0; padding-top: 0; }
+.aside h2, .aside h3 { font-family: 'Inter', system-ui, sans-serif; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: hsl(var(--gold-ink)); margin: 0 0 14px; font-weight: 600; }
+.aside li + li { margin-top: 10px; }
+.aside a:not(.btn) { font-size: 15px; color: hsl(var(--navy-ink)); text-decoration: none; }
+.aside a:not(.btn):hover { text-decoration: underline; text-decoration-color: hsl(var(--gold)); text-underline-offset: 4px; }
+.aside .acoes { display: flex; flex-direction: column; gap: 10px; }
+.aside .acoes .btn { width: 100%; }
+.aside a.faz-parte { font-size: 20px; line-height: 1.3; }
+.ass { display: flex; align-items: center; gap: 14px; font-size: 14px; color: hsl(var(--ink-secondary)); line-height: 1.5; }
+.ass img { width: 48px; height: 48px; object-fit: cover; object-position: top; border-radius: 50%; background: hsl(var(--sand)); }
+.ass b { display: block; color: hsl(var(--foreground)); font-weight: 600; }
+.prosa > * + * { margin-top: 16px; }
+.prosa h2 { font-size: 27px; line-height: 1.25; margin: 56px 0 18px; }
+
+/* ------------------------------------------------------------------ o escritório */
+.hero-esc { padding: 104px 0 112px; }
+.hero-esc .display { max-width: 760px; margin-bottom: 34px; }
+.hero-esc .lead { max-width: 720px; color: hsl(var(--sand)); }
+.hist { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 80px; align-items: start; }
+.hist .h2 { margin-bottom: 28px; }
+.hist p + p { margin-top: 18px; }
+.hist-foto { position: relative; height: 560px; margin-top: 24px; }
+.hist-foto .placa { position: absolute; left: 0; right: -24px; top: 96px; bottom: 0; background: hsl(var(--sand)); border-radius: 4px; }
+.hist-foto img { position: absolute; left: 0; bottom: 0; width: 360px; }
+.hist-foto .leg { position: absolute; right: 0; bottom: -40px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: hsl(var(--ink-secondary)); }
+.cit { max-width: 900px; }
+.cit .h2 { font-size: 52px; line-height: 1.15; margin-bottom: 28px; }
+.cit .h2 em { color: hsl(var(--gold-ink)); }
+.cit p { max-width: 720px; }
+.mv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.mv-item { padding: 40px 36px; border: 1px solid hsl(var(--ivory) / .18); border-radius: 4px; }
+.mv-item .h3 { margin-bottom: 16px; }
+.mv-item p:not(.eyebrow) { color: hsl(var(--sand)); font-size: 16px; }
+.valores { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 32px; border-top: 1px solid hsl(var(--border)); padding-top: 36px; }
+.valor .num { display: block; font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: hsl(var(--gold-ink)); margin-bottom: 14px; }
+.valor .h4 { margin-bottom: 10px; }
+.valor p { font-size: 15px; line-height: 1.6; color: hsl(var(--ink-secondary)); }
+.dados { display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid hsl(var(--border)); }
+.dados > div { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 16px; padding: 16px 0; border-bottom: 1px solid hsl(var(--border)); font-size: 15px; }
+.dados dt { color: hsl(var(--muted-foreground)); }
+.dados dd { color: hsl(var(--foreground)); }
+.dados .fonte { display: block; margin-top: 4px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+
+/* ------------------------------------------------------------------ 404 */
+.erro .display { max-width: 900px; }
+
+/* ------------------------------------------------------------------ telas estreitas */
+/* A prévia usava consultas de contêiner (o quadro do canvas); aqui são
+ * consultas de mídia com os mesmos limites. */
+@media (max-width: 1080px) {
+  .wrap { padding: 0 28px; }
+  .display { font-size: 56px; }
+  .h2 { font-size: 40px; }
+  .areas, .cartoes, .posts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .passos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .valores { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rod-top { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nav { gap: 22px; }
+}
+@media (max-width: 860px) {
+  .sec { padding: 72px 0; }
+  .sec-sm { padding: 56px 0; }
+  .sec-head { margin-bottom: 36px; }
+  .nav { display: none; }
+  .menu-m { display: block; }
+  .sair span { display: none; }
+  .hdr-in { min-height: 72px; gap: 16px; }
+  .hdr-acoes { margin-left: auto; gap: 8px; }
+  .marca-mono { width: 30px; height: 35px; }
+  .marca-nome { font-size: 13px; }
+  .grid-7-5, .grid-8-4, .grid-5-7, .hist, .faixa-in, .quem { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .hero { padding: 48px 0 0; }
+  .hero-foto { height: 440px; width: 100%; max-width: 340px; justify-self: center; margin: 16px 0 28px; align-self: auto; }
+  .foto-placa { left: 0; right: 0; top: 90px; }
+  .foto-img { width: 300px; }
+  .foto-legenda { left: 0; right: 0; bottom: -30px; text-align: center; }
+  .hero-base { height: 72px; }
+  .sit-grid, .q-grid { grid-template-columns: minmax(0, 1fr); }
+  .areas, .cartoes, .posts, .mv, .dados { grid-template-columns: minmax(0, 1fr); }
+  .passos { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .nums { grid-template-columns: minmax(0, 1fr); gap: 28px; margin-top: 56px; }
+  .valores { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .rod-top { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 24px; }
+  .aside { position: static; }
+  .hero-int { padding: 24px 0 56px; }
+  .hero-esc { padding: 64px 0 72px; }
+  .hist-foto { height: 420px; width: 100%; max-width: 320px; justify-self: center; margin: 8px 0 24px; }
+  .hist-foto img { width: 270px; }
+  .hist-foto .placa { left: 0; right: 0; top: 80px; }
+  .hist-foto .leg { left: 0; right: 0; bottom: -30px; text-align: center; }
+  .quem-foto { height: 360px; width: 100%; max-width: 280px; }
+  .quem-foto img { width: 230px; }
+  .faixa { padding: 72px 0; }
+  .faixa-acoes .btn { min-width: 0; width: 100%; }
+  .faixa-acoes { align-items: stretch; }
+}
+@media (max-width: 480px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 20px; }
+  .display { font-size: 42px; line-height: 1.06; }
+  .hero-int .display { font-size: 38px; }
+  .h2 { font-size: 33px; line-height: 1.12; }
+  .h3, .corpo .h3, .corpo h2, .prosa h2 { font-size: 23px; }
+  .lead { font-size: 18px; }
+  .sit-t { font-size: 22px; }
+  .sit { grid-template-columns: 36px minmax(0, 1fr) auto; padding: 18px 0; }
+  .sit-fio { padding-left: 32px; }
+  .sit-fio > li::before { left: -32px; top: 36px; }
+  .sit-fio .linha { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 24px 0; }
+  .sit-fio .sit-t { font-size: 24px; }
+  .q-grid .q { font-size: 20px; }
+  .fio { padding-left: 56px; }
+  .etapa-n { left: -56px; }
+  .etapa { padding-bottom: 44px; }
+  .direta { padding: 26px 24px 26px 28px; }
+  .direta p:not(.eyebrow) { font-size: 19px; }
+  .cit .h2 { font-size: 34px; }
+  .num-v { font-size: 52px; }
+  .faq summary { font-size: 19px; padding: 20px 0; }
+  .dados > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .rod-top { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .rod-base { flex-direction: column; }
+  .cta-row .btn, .faixa-acoes .btn, .ficha .acoes .btn, .aside .btn { width: 100%; }
+  .marca-sub { display: none; }
+  .marca-mono { width: 28px; height: 33px; }
+  .marca { gap: 10px; }
+  .marca-nome { font-size: 12px; letter-spacing: .16em; }
+  .hdr-in { gap: 10px; }
+  .hdr-acoes { gap: 6px; }
+  .sair { padding: 0 6px; }
+  .btn-sm { padding: 0 12px; font-size: 13px; min-height: 40px; }
+  .menu-m > summary { width: 40px; height: 40px; }
+  .cta-row { flex-direction: column; align-items: stretch; gap: 18px; }
+  .cta-row .arrow { justify-content: center; }
+  .selos { gap: 10px 24px; }
+}
+
+/* ------------------------------------------------------------------ movimento */
+/* Bloco prefers-reduced-motion do portal: tudo o que mexe para. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .btn-gold:hover { transform: none; }
+}
+
+/* ------------------------------------------------------------------ impressão */
+/* Folha limpa (spec v2, §3.3): o texto, os documentos, a base legal, o
+ * endereço da página e a data da revisão. Sem cabeçalho, contato, rodapé,
+ * botões nem fundos: tinta foreground sobre branco, só tokens também aqui. */
+.so-impressao { display: none; }
+@media print {
+  @page { margin: 18mm 16mm; }
+  html, body { background: hsl(var(--card)) !important; color: hsl(var(--foreground)) !important; font-size: 11pt; line-height: 1.5; }
+  .previa, .hdr, .crumbs, .faixa, .rod, .aside, .ficha .acoes, .cta-row, .busca, .pular, .nao-imprimir, .aviso-exemplo .ico { display: none !important; }
+  .so-impressao { display: block !important; }
+  .navy, .navy-dark, .white, .sec, .hero-int, .direta, .ficha, .cartao { background: none !important; color: hsl(var(--foreground)) !important; box-shadow: none !important; }
+  .navy .muted, .navy .lead, .cartao p, .navy .cartao p { color: hsl(var(--foreground)) !important; }
+  .sec, .sec-sm, .hero-int { padding: 0 0 14pt !important; }
+  .wrap { max-width: none; padding: 0 !important; }
+  .corpo, .etapa p, .hero-int .lead { max-width: none !important; }
+  .grid-8-4, .grid-5-7, .grid-7-5 { display: block !important; }
+  .display { font-size: 22pt !important; line-height: 1.2; margin-bottom: 8pt !important; }
+  .h2 { font-size: 15pt !important; margin-bottom: 6pt !important; }
+  .h3, .corpo h2 { font-size: 13pt !important; margin: 14pt 0 6pt !important; }
+  .eyebrow { color: hsl(var(--foreground)) !important; margin-bottom: 4pt !important; }
+  .sec-head { margin-bottom: 8pt !important; }
+  .direta { border: 1pt solid hsl(var(--foreground)) !important; padding: 10pt 12pt !important; }
+  .direta::before { display: none; }
+  .direta p:not(.eyebrow) { font-size: 12pt !important; }
+  .fio { padding-left: 0 !important; }
+  .fio::before { display: none; }
+  .etapa { padding-bottom: 10pt !important; break-inside: avoid; }
+  .etapa-n { position: static !important; display: inline-flex !important; width: auto !important; height: auto !important; border: 0 !important; margin-right: 6pt; font-size: 13pt; color: hsl(var(--foreground)) !important; }
+  .cascata > * { animation: none !important; }
+  .check li::before { border-color: hsl(var(--foreground)) !important; }
+  .lei a { color: hsl(var(--foreground)) !important; }
+  .lei a span { display: none; }
+  .lei a::after { content: ' — ' attr(href); font-size: 9pt; word-break: break-all; }
+  .perg a, .q-grid .linha, a.linha { color: hsl(var(--foreground)) !important; }
+  .cartoes { display: block !important; }
+  .cartao { border: 0 !important; padding: 0 0 8pt !important; }
+  a { text-decoration: none !important; }
+  .faq details > *:not(summary) { display: block !important; }
+  /* "Imprimir a lista" na Situação: só os documentos. */
+  html[data-imprimir='documentos'] main > *:not(#documentos):not(.so-impressao) { display: none !important; }
+  html[data-imprimir='documentos'] #documentos .cta-row, html[data-imprimir='documentos'] #documentos .lead { display: none !important; }
+}
+
+@tailwind utilities;
