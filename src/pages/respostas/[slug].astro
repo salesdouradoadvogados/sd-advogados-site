@@ -1,0 +1,106 @@
+---
+// Resposta (spec v2, §3.3): o molde mais importante do site. A coisa à
+// esquerda, o contexto à direita. Título na voz da leitora (itálico).
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import Pergunta from '../../components/Pergunta.astro';
+import Assinatura from '../../components/Assinatura.astro';
+import Imprimir from '../../components/Imprimir.astro';
+import { getEntry, render } from 'astro:content';
+import { respostas, revisao, partirCondicao, url, type Resposta } from '../../lib/conteudo';
+import { site } from '../../site.config';
+
+export async function getStaticPaths() {
+  return (await respostas()).map((resposta) => ({ params: { slug: resposta.id }, props: { resposta } }));
+}
+
+interface Props { resposta: Resposta }
+const { resposta } = Astro.props;
+const d = resposta.data;
+const rev = revisao(resposta);
+const pessoa = await getEntry(d.revisado_por);
+const situacao = await getEntry(d.situacoes[0]);
+const iEtapa = situacao.data.etapas.findIndex((e) => e.slug === d.etapa);
+const etapa = iEtapa >= 0 ? situacao.data.etapas[iEtapa] : null;
+const rotuloEtapa = etapa ? `Etapa ${iEtapa + 1}, ${etapa.titulo.toLowerCase()}` : null;
+const { Content } = await render(resposta);
+
+const enderecoDaPagina = new URL(url.resposta(resposta.id), site.url).href;
+const whatsapp = `https://wa.me/?text=${encodeURIComponent(`${d.pergunta}\n${enderecoDaPagina}`)}`;
+const dominio = (u: string) => new URL(u).hostname.replace(/^www\./, '');
+---
+<Base titulo={d.pergunta} descricao={d.resposta_direta} atual="respostas" exemplo={d.exemplo}>
+  <Crumbs itens={[{ rotulo: 'Início', href: url.inicio }, { rotulo: situacao.data.titulo, href: url.situacao(situacao.id) }, { rotulo: 'Resposta' }]} />
+  <section class="hero-int" style="padding-bottom: 56px">
+    <div class="wrap">
+      <p class="eyebrow">Resposta{rotuloEtapa && ` · ${rotuloEtapa}`}</p>
+      <h1 class="display it" style="max-width: 900px">{d.pergunta}</h1>
+      <div class="meta">
+        <p><b>Revisão</b> {rev.feita ? `em ${rev.texto}` : 'pendente'}</p>
+        <p><b>por</b> {pessoa.data.nome}, {pessoa.data.oab}</p>
+        {d.leitura_minutos && <p><b>Leitura</b> de {d.leitura_minutos} {d.leitura_minutos === 1 ? 'minuto' : 'minutos'}</p>}
+      </div>
+    </div>
+  </section>
+
+  <section class="sec white" style="padding-top: 72px">
+    <div class="wrap grid-8-4">
+      <article class="corpo" data-pagefind-body data-pagefind-meta="title[data-titulo], contexto[data-contexto]" data-titulo={d.pergunta} data-contexto={`${situacao.data.titulo}${etapa ? ` · Etapa ${iEtapa + 1}` : ''}`}>
+        <div class="direta">
+          <p class="eyebrow">Resposta direta</p>
+          <p>{d.resposta_direta}</p>
+        </div>
+
+        <h2 class="h3">Depende de</h2>
+        <ul class="pontos">
+          {d.depende_de.map((item) => {
+            const { condicao, explicacao } = partirCondicao(item);
+            return <li>{condicao && <strong>{condicao}</strong>} {explicacao}</li>;
+          })}
+        </ul>
+
+        <div class="prosa"><Content /></div>
+
+        <h2 class="h3">Base legal</h2>
+        <ul class="lei">
+          {d.base_legal.map((l) => (
+            <li><a href={l.url} rel="noopener">{l.norma}, {l.dispositivo} <span>{dominio(l.url)}</span></a></li>
+          ))}
+        </ul>
+
+        {d.vizinhas.length > 0 && (
+          <>
+            <h2 class="h3">Perguntas vizinhas</h2>
+            <div class="perg">{d.vizinhas.map((v) => <Pergunta {...v} />)}</div>
+          </>
+        )}
+
+        <div class="so-impressao" style="margin-top: 24pt">
+          <p class="small">{enderecoDaPagina}</p>
+          <p class="small">{rev.feita ? `Revisado em ${rev.texto}` : 'Revisão pendente'} por {pessoa.data.nome}, {pessoa.data.oab}. {site.nomeCanonico}. Texto informativo, que não substitui a análise do seu caso.</p>
+        </div>
+      </article>
+
+      <aside class="aside" aria-label="Sobre esta resposta">
+        <div class="bloco">
+          <h2>Faz parte de</h2>
+          <p><a href={url.situacao(situacao.id) + (etapa ? `#${etapa.slug}` : '')} class="serif it faz-parte">{situacao.data.titulo}</a></p>
+          {etapa && <p class="small muted" style="margin-top: 6px">Etapa {iEtapa + 1} · {etapa.titulo}</p>}
+        </div>
+        {d.termos.length > 0 && (
+          <div class="bloco">
+            <h2>Termos desta página</h2>
+            <div class="chips">{d.termos.map((t) => <span title="Verbete do glossário em preparação">{t}</span>)}</div>
+          </div>
+        )}
+        <div class="bloco"><h2>Quem revisa</h2><Assinatura pessoa={d.revisado_por.id} linha={rev.feita ? `revisado em ${rev.texto}` : 'revisão pendente'} /></div>
+        <div class="bloco acoes">
+          <a class="btn btn-gold" href={url.conversar}>Falar com o escritório</a>
+          <a class="btn btn-line" href={whatsapp} rel="noopener"><Icon name="share-2" /> Compartilhar pelo WhatsApp</a>
+          <Imprimir />
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>

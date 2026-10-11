@@ -1,0 +1,124 @@
+---
+// Busca do Início (spec v2, §9: Pagefind). O índice é gerado no build e só é
+// baixado quando ela entra no campo: quem não busca não paga por ele.
+// Sem JavaScript, o campo não responde; as situações logo abaixo continuam
+// sendo o caminho.
+import Icon from './Icon.astro';
+import { url } from '../lib/conteudo';
+---
+<form class="busca" id="busca" role="search" action="/" method="get" data-busca>
+  <div class="busca-campo">
+    <Icon name="search" />
+    <label for="busca-campo" class="sr-only">Busque com suas palavras</label>
+    <input id="busca-campo" name="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Busque com suas palavras: prisão, gravidez, mudar de cidade…" />
+    <button type="button" data-limpar hidden aria-label="Limpar a busca"><Icon name="x" /></button>
+  </div>
+  <p class="sr-only" aria-live="polite" data-status></p>
+  <div class="busca-res" data-resultados hidden></div>
+  <template data-vazio>
+    <p class="busca-vazio">Nenhuma pergunta com essas palavras. Veja as situações abaixo ou <a href={url.conversar}>fale com o escritório</a>.</p>
+  </template>
+</form>
+
+<script>
+  type Resultado = { url: string; meta: { title?: string; contexto?: string } };
+  type Pagefind = {
+    init: () => Promise<void>;
+    debouncedSearch: (q: string, o?: object, ms?: number) => Promise<{ results: { data: () => Promise<Resultado> }[] } | null>;
+  };
+
+  const form = document.querySelector<HTMLFormElement>('[data-busca]');
+  if (form) {
+    const campo = form.querySelector<HTMLInputElement>('input')!;
+    const limpar = form.querySelector<HTMLButtonElement>('[data-limpar]')!;
+    const caixa = form.querySelector<HTMLDivElement>('[data-resultados]')!;
+    const status = form.querySelector<HTMLParagraphElement>('[data-status]')!;
+    const vazio = form.querySelector<HTMLTemplateElement>('[data-vazio]')!;
+    let pagefind: Promise<Pagefind> | null = null;
+
+    // O caminho fica numa variável para o empacotador não tentar resolvê-lo:
+    // o arquivo só existe depois que o Pagefind roda sobre o build.
+    const indice = '/pagefind/pagefind.js';
+    const carregar = () => {
+      pagefind ??= import(/* @vite-ignore */ indice).then(async (pf: Pagefind) => {
+        await pf.init();
+        return pf;
+      });
+      return pagefind;
+    };
+
+    const fechar = () => {
+      caixa.hidden = true;
+      caixa.replaceChildren();
+      status.textContent = '';
+    };
+
+    const buscar = async () => {
+      const q = campo.value.trim();
+      limpar.hidden = q === '';
+      if (!q) return fechar();
+      let pf: Pagefind;
+      try {
+        pf = await carregar();
+      } catch {
+        caixa.hidden = false;
+        caixa.replaceChildren(vazio.content.cloneNode(true));
+        status.textContent = 'A busca não carregou. Veja as situações abaixo.';
+        return;
+      }
+      const busca = await pf.debouncedSearch(q, {}, 180);
+      if (busca === null || campo.value.trim() !== q) return; // outra busca já começou
+      const dados = await Promise.all(busca.results.slice(0, 6).map((r) => r.data()));
+      caixa.hidden = false;
+      if (dados.length === 0) {
+        caixa.replaceChildren(vazio.content.cloneNode(true));
+        status.textContent = 'Nenhuma pergunta encontrada.';
+        return;
+      }
+      const lista = document.createElement('ul');
+      for (const d of dados) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = d.url;
+        const t = document.createElement('span');
+        t.className = 'q';
+        t.textContent = d.meta.title ?? d.url;
+        a.append(t);
+        if (d.meta.contexto) {
+          const s = document.createElement('span');
+          s.className = 's';
+          s.textContent = d.meta.contexto;
+          a.append(s);
+        }
+        li.append(a);
+        lista.append(li);
+      }
+      caixa.replaceChildren(lista);
+      status.textContent = dados.length === 1 ? '1 resultado.' : `${dados.length} resultados.`;
+    };
+
+    campo.addEventListener('focus', carregar, { once: true });
+    campo.addEventListener('input', buscar);
+    campo.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && campo.value) {
+        campo.value = '';
+        buscar();
+      }
+    });
+    limpar.addEventListener('click', () => {
+      campo.value = '';
+      buscar();
+      campo.focus();
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      buscar();
+    });
+    // Busca que chega pelo endereço (?q=), para um link de busca funcionar.
+    const inicial = new URLSearchParams(location.search).get('q');
+    if (inicial) {
+      campo.value = inicial;
+      buscar();
+    }
+  }
+</script>

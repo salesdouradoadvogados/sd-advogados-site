@@ -1,0 +1,34 @@
+---
+// Página não encontrada (spec v2, §4.7): diz a causa provável e oferece as
+// situações, que são a porta de entrada do site.
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { situacoes, url } from '../lib/conteudo';
+
+const lista = await situacoes();
+---
+<Base titulo="Página não encontrada" descricao="Este endereço não existe no site. Entre pela sua situação ou fale com o escritório.">
+  <section class="hero-int erro">
+    <div class="wrap">
+      <p class="eyebrow">Página não encontrada</p>
+      <h1 class="display">Este endereço não leva a nenhuma página.</h1>
+      <p class="lead muted">O link pode ter sido digitado com um erro, ou a página mudou de lugar. As situações abaixo são o melhor ponto de partida.</p>
+      <div class="cta-row">
+        <a class="btn btn-gold" href={url.situacoes}>Ver todas as situações</a>
+        <a class="arrow" href={url.conversar}>Falar com o escritório <Icon name="arrow-right" /></a>
+      </div>
+    </div>
+  </section>
+  {lista.length > 0 && (
+    <section class="sec white" aria-labelledby="erro-sit">
+      <div class="wrap">
+        <div class="sec-head"><p class="eyebrow">Situações</p><h2 class="h2" id="erro-sit">Comece por aqui.</h2></div>
+        <ul class="sit-grid">
+          {lista.map((s) => (
+            <li><a class="sit" href={url.situacao(s.id)}><span class="sit-n" aria-hidden="true"></span><span><span class="sit-t">{s.data.titulo}</span></span><Icon name="arrow-right" /></a></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+</Base>

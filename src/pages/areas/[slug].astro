@@ -1,0 +1,142 @@
+---
+// Área (spec v2, §3.6). Título na voz do escritório (romano).
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import Assinatura from '../../components/Assinatura.astro';
+import { getEntry } from 'astro:content';
+import { pautaDeSituacoes } from '../../data/pauta';
+import { areas, situacoes, revisao, etapasPorExtenso, url, type Area } from '../../lib/conteudo';
+
+export async function getStaticPaths() {
+  return (await areas()).map((area) => ({ params: { slug: area.id }, props: { area } }));
+}
+
+interface Props { area: Area }
+const { area } = Astro.props;
+const d = area.data;
+const rev = revisao(area);
+const nomeCurto = d.nome_curto ?? d.titulo.toLowerCase();
+const pessoa = await getEntry(d.revisado_por);
+
+// Situações desta área: as escritas primeiro, depois as da pauta ainda em
+// preparação (só nas prévias; em produção a lista é só a das escritas).
+const escritas = (await situacoes()).filter((s) => s.data.areas.some((a) => a.id === area.id));
+const slugsEscritos = new Set(escritas.map((s) => s.id));
+const previstas = pautaDeSituacoes.filter((p) => p.areas.includes(area.id) && !slugsEscritos.has(p.slug));
+---
+<Base titulo={d.titulo} descricao={d.resumo} atual="areas" exemplo={d.exemplo}>
+  <Crumbs itens={[{ rotulo: 'Início', href: url.inicio }, { rotulo: 'Áreas', href: url.areas }, { rotulo: d.titulo }]} />
+  <section class="hero-int" data-pagefind-body data-pagefind-meta="title[data-titulo], contexto[data-contexto]" data-titulo={d.titulo} data-contexto="Área do escritório">
+    <div class="wrap grid-8-4">
+      <div>
+        <p class="eyebrow">Área · Direito de Família</p>
+        <h1 class="display">{d.titulo}</h1>
+        <p class="lead muted">{d.resumo}</p>
+        <div class="cta-row">
+          <a class="btn btn-gold" href={url.conversar}>Falar com o escritório</a>
+          <a class="arrow" href="#situacoes-area">Ver as situações desta área <Icon name="arrow-right" /></a>
+        </div>
+      </div>
+      <aside class="ficha" aria-label="Nesta área">
+        <h2>Nesta área</h2>
+        <ul>{d.inclui.map((i) => <li>{i}</li>)}</ul>
+        <p class="quem-l"><strong>{pessoa.data.nome}</strong>Advogado responsável · {pessoa.data.oab}<br />{rev.feita ? `Página revisada em ${rev.texto}` : 'Revisão pendente'}</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="sec white" id="situacoes-area" aria-labelledby="sa-titulo">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Situações desta área</p>
+        <h2 class="h2" id="sa-titulo">Por onde você entra.</h2>
+        <p class="lead muted">Cada situação abre o caminho em etapas, na ordem em que acontecem, com as respostas no ponto certo.</p>
+      </div>
+      <ol class="sit-fio">
+        {escritas.map((s) => (
+          <li>
+            <a class="linha" href={url.situacao(s.id)}>
+              <span><span class="sit-t">{s.data.titulo}</span><span class="sit-d">{pautaDeSituacoes.find((p) => p.slug === s.id)?.tema ?? ''}. {etapasPorExtenso(s.data.etapas.length).replace(/^./, (c) => c.toUpperCase())}.</span></span>
+              <span class="arrow">Ver o caminho <Icon name="arrow-right" /></span>
+            </a>
+          </li>
+        ))}
+        {previstas.map((p) => (
+          <li>
+            <div class="linha">
+              <span><span class="sit-t">{p.titulo}</span><span class="sit-d">{p.tema}.</span></span>
+              <span class="em-prep">em preparação</span>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  {d.respostas_destaque.length > 0 && (
+    <section class="sec" aria-labelledby="rd-titulo">
+      <div class="wrap">
+        <div class="sec-head">
+          <p class="eyebrow">Respostas mais lidas</p>
+          <h2 class="h2" id="rd-titulo">As perguntas que mais chegam sobre {nomeCurto}.</h2>
+        </div>
+        <ul class="q-grid">
+          {d.respostas_destaque.map((r) => (
+            <li>
+              {r.slug ? (
+                <a class="linha" href={url.resposta(r.slug)}><span class="q">{r.pergunta}</span><span class="s">{r.situacao}</span></a>
+              ) : (
+                <div class="linha prevista"><span class="q">{r.pergunta}</span><span class="s">{r.situacao} · <span class="em-prep">em preparação</span></span></div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section class="sec navy" aria-labelledby="fr-titulo">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Como o escritório atua</p>
+        <h2 class="h2" id="fr-titulo">{d.frentes.titulo}</h2>
+        <p class="lead muted">{d.frentes.texto}</p>
+      </div>
+      <div class="cartoes">
+        {d.frentes.itens.map((f) => (
+          <div class="cartao"><h3 class="h4">{f.titulo}</h3><p>{f.texto}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="sec white" aria-labelledby="faq-titulo">
+    <div class="wrap grid-8-4">
+      <div>
+        <div class="sec-head">
+          <p class="eyebrow">Perguntas frequentes</p>
+          <h2 class="h2" id="faq-titulo">O que toda mãe pergunta sobre {nomeCurto}.</h2>
+        </div>
+        <div class="faq">
+          {d.faq.map((f, i) => (
+            <details open={i === 0}>
+              <summary>{f.pergunta}<Icon name="plus" /></summary>
+              <p class="r">{f.resposta}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+      <aside class="aside" aria-label="Sobre esta área">
+        {d.termos.length > 0 && (
+          <div class="bloco">
+            <h2>Termos desta área</h2>
+            <div class="chips">{d.termos.map((t) => <span title="Verbete do glossário em preparação">{t}</span>)}</div>
+          </div>
+        )}
+        <div class="bloco"><h2>Quem atende</h2><Assinatura pessoa={d.revisado_por.id} linha="revisa cada página desta área" /></div>
+        <div class="bloco acoes"><a class="btn btn-line" href={url.conversar}>Falar com o escritório</a></div>
+      </aside>
+    </div>
+  </section>
+</Base>

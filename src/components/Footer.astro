@@ -1,0 +1,85 @@
+---
+// Rodapé navy-dark: marca, mapa do site e os dados do escritório, todos lidos
+// do site.config.ts. Página que ainda não existe (Sessão 3) aparece como
+// texto, sem link: o rodapé não aponta para página que dá erro.
+import { site } from '../site.config';
+import { situacoes, areas, url } from '../lib/conteudo';
+
+const slugsSituacao = new Set((await situacoes()).map((s) => s.id));
+const slugsArea = new Set((await areas()).map((a) => a.id));
+
+type Item = { rotulo: string; href: string | null };
+const situacao = (slug: string, rotulo: string): Item => ({ rotulo, href: slugsSituacao.has(slug) ? url.situacao(slug) : url.situacoes });
+const area = (slug: string): Item => {
+  const a = site.areas.find((x) => x.slug === slug)!;
+  return { rotulo: a.titulo, href: slugsArea.has(slug) ? url.area(slug) : url.areas };
+};
+
+const colunas: { titulo: string; itens: Item[] }[] = [
+  {
+    titulo: 'Situações',
+    itens: [
+      situacao('ele-parou-de-pagar-a-pensao', 'Ele parou de pagar a pensão'),
+      situacao('quero-me-separar', 'Quero me separar'),
+      situacao('ele-ameaca-tirar-a-guarda', 'Ele ameaça tirar a guarda'),
+      { rotulo: 'Todas as situações', href: url.situacoes },
+    ],
+  },
+  { titulo: 'Áreas', itens: [area('divorcio'), area('guarda'), area('pensao-alimenticia'), area('visitas-e-convivencia')] },
+  {
+    titulo: 'O escritório',
+    itens: [
+      { rotulo: 'A causa e a história', href: url.escritorio },
+      { rotulo: site.responsavel.nome, href: `${url.escritorio}#historia` },
+      { rotulo: 'Ficha do escritório', href: url.ficha },
+      { rotulo: 'Como revisamos', href: `${url.escritorio}#como-revisamos` },
+    ],
+  },
+  {
+    titulo: 'Atendimento',
+    itens: [
+      { rotulo: 'Como funciona', href: url.atendimento },
+      { rotulo: `Em ${site.atendimento.cidade}`, href: url.atendimento },
+      { rotulo: 'Online, em todo o Brasil', href: url.atendimento },
+      { rotulo: 'Conversar', href: url.conversar },
+    ],
+  },
+];
+
+// Páginas institucionais da Sessão 3.
+const base: Item[] = [
+  { rotulo: 'Privacidade', href: null },
+  { rotulo: 'Navegação segura', href: null },
+  { rotulo: 'Como revisamos', href: null },
+  { rotulo: 'Alterações', href: null },
+];
+
+const ano = new Date().getFullYear();
+---
+<footer class="rod navy-dark">
+  <div class="wrap">
+    <div class="rod-top">
+      <div>
+        <img class="rod-logo" src="/marca/logo-branca-480.webp" alt={site.nomeCanonico} width="200" height="92" loading="lazy" decoding="async" />
+        <p class="rod-tag">{site.descricaoCurta}</p>
+      </div>
+      {colunas.map((c) => (
+        <nav aria-label={c.titulo}>
+          <h2>{c.titulo}</h2>
+          <ul>
+            {c.itens.map((i) => <li>{i.href ? <a href={i.href}>{i.rotulo}</a> : <span class="em-prep-rod">{i.rotulo}</span>}</li>)}
+          </ul>
+        </nav>
+      ))}
+    </div>
+    <p class="rod-legal">
+      {site.razaoSocial.valor} · CNPJ {site.cnpj.valor} · Advogado responsável: {site.responsavel.nome}, {site.responsavel.oab.valor}. Este site oferece exclusivamente serviços jurídicos de advogado, de acordo com a legislação vigente e o Código de Ética e Disciplina da OAB. As respostas publicadas são informativas e não substituem a análise do seu caso.
+    </p>
+    <div class="rod-base">
+      <p>© {ano} {site.nomeCanonico}</p>
+      <ul>
+        {base.map((i) => <li>{i.href ? <a href={i.href}>{i.rotulo}</a> : <span class="em-prep-rod" title="Página em preparação">{i.rotulo}</span>}</li>)}
+      </ul>
+    </div>
+  </div>
+</footer>

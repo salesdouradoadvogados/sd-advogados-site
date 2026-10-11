@@ -1,0 +1,12 @@
+---
+// Uma pergunta numa lista. Com resposta escrita, vira link; sem ela, aparece
+// como texto marcado "em preparação" (src/content.config.ts).
+import { url } from '../lib/conteudo';
+
+interface Props {
+  pergunta: string;
+  slug?: string;
+}
+const { pergunta, slug } = Astro.props;
+---
+{slug ? <a href={url.resposta(slug)}>{pergunta}</a> : <span class="prevista">{pergunta} <span class="em-prep">em preparação</span></span>}

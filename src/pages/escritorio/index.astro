@@ -1,0 +1,159 @@
+---
+// O escritório (spec v2, §3.7). Texto do "Quem Somos" aprovado pelo escritório
+// (CRM, 18/07/2026, frontend/src/pages/quem-somos/QuemSomos.tsx), como saiu na
+// prévia aprovada em 11/10: o nome canônico no lugar de "SD Advogados" (P11) e
+// travessões trocados por vírgula ou dois-pontos. Nenhuma outra palavra muda.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import Assinatura from '../../components/Assinatura.astro';
+import { site } from '../../site.config';
+import { url } from '../../lib/conteudo';
+
+const r = site.responsavel;
+
+const valores = [
+  { nome: 'Acolhimento', texto: 'Cada mulher é recebida como pessoa, não como número de processo.' },
+  { nome: 'Transparência', texto: 'Clareza em cada passo, sem promessas vazias.' },
+  { nome: 'Combatividade', texto: 'Enfrentamos cada causa com a intensidade que ela merece.' },
+  { nome: 'Firmeza', texto: 'Sustentamos posições com segurança, do início ao fim.' },
+  { nome: 'Equidade', texto: 'Buscamos, sempre, a divisão justa daquilo que é de direito.' },
+];
+
+const faq = [
+  { p: 'O escritório atende somente mulheres?', r: 'Sim. Nossa atuação é dedicada exclusivamente às mulheres e mães. Essa é uma escolha de propósito: acreditamos que a melhor defesa nasce da especialização e do compromisso total com uma causa.' },
+  { p: 'Vocês atendem em quais cidades? O atendimento é presencial?', r: 'Atendemos em todo o Brasil e também acompanhamos clientes que vivem fora do país. Todo o processo é conduzido de forma on-line, com um acompanhamento próximo e atento. Mesmo à distância, você nunca se sente sozinha.' },
+  { p: 'Como funciona o primeiro atendimento?', r: 'O primeiro passo é preencher nosso formulário. A partir dele, nosso time entra em contato para entender melhor a sua situação e agendar uma consultoria estratégica. Nessa reunião, analisamos os detalhes do seu caso e damos as orientações necessárias, incluindo como funciona o início do processo e quais são os próximos passos. Você sai com clareza sobre o que fazer.' },
+  { p: 'Preciso pagar para tirar minhas primeiras dúvidas?', r: 'A consultoria estratégica e a análise de processos têm um custo, porque envolvem um estudo aprofundado e personalizado do seu caso. Mas existem formas de tirar dúvidas gerais sem nenhum custo: acompanhe nossas caixinhas de perguntas, lives e conteúdos, onde esclarecemos as questões mais comuns.' },
+  { p: 'Já tenho um processo em andamento com outro advogado. Posso trocar por vocês?', r: 'Sim. A troca de advogado durante o processo é um procedimento simples e não prejudica o andamento do seu caso. Se você não se sente bem representada, tem todo o direito de buscar quem cuide da sua causa com a dedicação que ela merece.' },
+  { p: 'O pai dos meus filhos não paga pensão. O que posso fazer?', r: 'A via judicial é o caminho mais eficaz. Com o processo de execução de alimentos, é possível obrigar o pagamento da pensão, inclusive com medidas como o bloqueio de valores, a negativação do nome do devedor e, em determinados casos, até a prisão. Você não precisa aceitar o descumprimento: a lei está do seu lado, e nós sabemos como fazê-la valer.' },
+  { p: 'Tenho medo de perder a guarda dos meus filhos. Vocês ajudam nesses casos?', r: 'Sim, somos especializados em guarda. E é importante você saber: a guarda de uma criança não pode ser alterada sem um motivo justo e comprovado. Nosso papel é proteger o seu vínculo com seus filhos e garantir que qualquer decisão respeite, acima de tudo, o bem-estar deles.' },
+  { p: 'Não tenho todos os documentos. Consigo começar mesmo assim?', r: 'Sim. Aliás, o mais recomendado é organizar a documentação com o nosso acompanhamento: assim você reúne exatamente o que é necessário, sem se perder em papéis, e com o suporte do nosso time em cada etapa. Começar é mais simples do que parece.' },
+  { p: 'Vocês acompanham depois que o processo termina?', r: 'Sim. Temos um pacote específico de acompanhamento pós-processo, pensado para te dar suporte no dia a dia após a decisão. Sabemos que os desafios não terminam com a sentença, e continuamos ao seu lado para orientar você diante de qualquer nova adversidade.' },
+];
+
+// A ficha (spec v2, §3.5), lida do site.config.ts. O que ainda não foi
+// conferido pelo escritório aparece marcado "a confirmar".
+type Dado = { rotulo: string; valor: string; confirmado: boolean; fonte?: string };
+const dados: Dado[] = [
+  { rotulo: 'Razão social', valor: site.razaoSocial.valor, confirmado: site.razaoSocial.confirmado },
+  { rotulo: 'CNPJ', valor: site.cnpj.valor, confirmado: site.cnpj.confirmado },
+  { rotulo: 'Responsável', valor: `${r.nome}, ${r.oab.valor}`, confirmado: r.oab.confirmado },
+  { rotulo: 'Atuação', valor: 'Direito de Família, na defesa da mulher', confirmado: true },
+  { rotulo: 'Atendimento', valor: site.atendimento.modalidades, confirmado: true },
+  {
+    rotulo: 'Canais',
+    valor: site.canais.whatsapp ? `Formulário de atendimento e WhatsApp ${site.canais.whatsapp}` : 'Formulário de atendimento',
+    confirmado: site.canais.whatsapp !== null,
+  },
+  ...site.numeros.map((n) => ({
+    rotulo: n.valor,
+    valor: n.rotulo.replace(/^./, (c) => c.toUpperCase()),
+    confirmado: n.confirmado,
+    fonte: n.fonte ? `Fonte: ${n.fonte}` : undefined,
+  })),
+  { rotulo: 'Revisão dos textos', valor: 'Pelo advogado responsável, com data em cada página', confirmado: true },
+];
+---
+<Base titulo="O escritório" descricao="A causa, a história e os fatos do Sales Dourado Advogados, escritório de direito de família dedicado à mulher." atual="escritorio">
+  <section class="hero-esc navy">
+    <div class="wrap">
+      <p class="eyebrow">O escritório</p>
+      <h1 class="display">A causa que nos move</h1>
+      <p class="lead">Durante anos atuando no Judiciário, uma cena se repetia diante dos nossos olhos: mães que faziam tudo pelos filhos saíam prejudicadas, enquanto o mínimo, do outro lado, era tratado como motivo de aplauso, quando sequer acontecia. Foi dessa inquietação que nasceu o {site.nomeCanonico}.</p>
+      <div class="rule"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="historia" aria-labelledby="hist-titulo">
+    <div class="wrap hist">
+      <div>
+        <p class="eyebrow">Nossa história</p>
+        <h2 class="h2" id="hist-titulo">Do Ministério Público à defesa exclusiva das mães</h2>
+        <p>{r.nome}, fundador do escritório, é advogado desde {r.desde.valor}. Ao longo da carreira, passou pela Defensoria Pública e por anos de atuação no Ministério Público em Direito de Família, sempre na linha de frente da defesa de quem mais precisa de proteção.</p>
+        <p>Foi justamente essa vivência dentro do sistema que revelou uma lacuna: mesmo com toda a estrutura de defesa dos vulneráveis, faltava às mulheres uma representação privada à altura, dedicada exclusivamente a elas, capaz de enfrentar cada disputa com a firmeza e o cuidado que a causa exige.</p>
+        <p>A virada veio com uma decisão: deixar o Ministério Público para advogar exclusivamente para mães. Não como um recomeço qualquer, mas como um compromisso, o de mudar uma realidade em que a mulher, tantas vezes, sai em desvantagem. Assim surgiu o {site.nomeCanonico}, hoje um time inteiro dedicado a essa missão.</p>
+      </div>
+      <figure class="hist-foto">
+        <div class="placa"></div>
+        <img src="/img/leilson-provisoria.webp" alt={`${r.nome}, fundador do escritório`} width="360" height="550" loading="lazy" decoding="async" />
+        <figcaption class="leg">{r.nome} · {r.oab.valor}</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="sec white" aria-labelledby="cit-titulo">
+    <div class="wrap cit">
+      <p class="eyebrow">Como trabalhamos</p>
+      <h2 class="h2" id="cit-titulo">Aqui, não cuidamos apenas do processo. <em class="it">Cuidamos da mulher.</em></h2>
+      <p>Nosso trabalho não termina na sentença. Oferecemos acompanhamento contínuo e orientação para que cada cliente saiba exatamente como agir em cada situação da vida após a separação, com a segurança de quem sabe que nunca estará sozinha. Entendemos que por trás de cada processo existe uma mãe tentando proteger seus filhos e reconstruir sua vida, e é a ela, por inteiro, que dedicamos nossa atuação.</p>
+    </div>
+  </section>
+
+  <section class="sec navy" aria-label="Missão e visão">
+    <div class="wrap">
+      <div class="mv">
+        <div class="mv-item"><p class="eyebrow">Missão</p><h2 class="h3">Dar visibilidade ao trabalho que sustenta uma família</h2><p>Mudar a realidade brasileira em que o pai é reconhecido pelo mínimo e a mãe, invisível no tudo. Dar visibilidade ao trabalho, inclusive o doméstico e invisível, que sustenta uma família, e garantir que as mães sejam reconhecidas e protegidas por tudo o que fazem.</p></div>
+        <div class="mv-item"><p class="eyebrow">Visão</p><h2 class="h3">Alcançar mulheres dentro e fora dos tribunais</h2><p>Alcançar o maior número possível de mulheres, dentro e fora dos tribunais, com iniciativas que não apenas resolvam disputas, mas transformem a mentalidade da sociedade sobre o papel da mãe.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="valores-titulo">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Nossos valores</p>
+        <h2 class="h2" id="valores-titulo">O que sustenta cada causa que assumimos</h2>
+      </div>
+      <ol class="valores">
+        {valores.map((v, i) => (
+          <li class="valor"><span class="num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><h3 class="h4">{v.nome}</h3><p>{v.texto}</p></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec white" id="ficha" aria-labelledby="ficha-titulo">
+    <div class="wrap grid-5-7">
+      <div>
+        <p class="eyebrow">Ficha do escritório</p>
+        <h2 class="h2" id="ficha-titulo">Os fatos, em lista.</h2>
+        <p class="lead muted" style="margin-top: 22px">O que é verificável fica aqui, com fonte e data. É a mesma lista que buscadores e assistentes de IA leem para descrever o escritório.</p>
+      </div>
+      <dl class="dados">
+        {dados.map((x) => (
+          <div>
+            <dt>{x.rotulo}</dt>
+            <dd>
+              {x.valor}{!x.confirmado && <span class="a-confirmar">a confirmar</span>}
+              {x.fonte && <span class="fonte">{x.fonte}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="faq-titulo">
+    <div class="wrap grid-8-4">
+      <div>
+        <div class="sec-head">
+          <p class="eyebrow">Perguntas frequentes</p>
+          <h2 class="h2" id="faq-titulo">O que toda mãe pergunta antes de começar</h2>
+        </div>
+        <div class="faq">
+          {faq.map((f, i) => (
+            <details open={i === 0}>
+              <summary>{f.p}<Icon name="plus" /></summary>
+              <p class="r">{f.r}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+      <aside class="aside" aria-label="Sobre o escritório">
+        <div class="bloco"><h2>Quem atende</h2><Assinatura pessoa={r.slug} linha="Advogado responsável" /></div>
+        <div class="bloco" id="como-revisamos"><h2>Como revisamos</h2><p class="small muted">Quem escreve, quem revisa e como um erro é corrigido estarão descritos em uma página própria, com o histórico público de alterações.</p></div>
+        <div class="bloco acoes"><a class="btn btn-gold" href={url.conversar}>Iniciar atendimento</a></div>
+      </aside>
+    </div>
+  </section>
+</Base>

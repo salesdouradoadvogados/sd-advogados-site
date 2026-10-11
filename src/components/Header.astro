@@ -1,0 +1,69 @@
+---
+// Cabeçalho marfim (divergência aprovada, spec v2 §4.8) com a saída rápida
+// (P13, §8.1) e o menu do celular em details/summary, que abre sem JavaScript.
+import Icon from './Icon.astro';
+import { url } from '../lib/conteudo';
+
+interface Props {
+  atual?: 'situacoes' | 'areas' | 'respostas' | 'escritorio' | 'atendimento';
+}
+const { atual } = Astro.props;
+
+const itens = [
+  { id: 'situacoes', rotulo: 'Situações', href: url.situacoes },
+  { id: 'areas', rotulo: 'Áreas', href: url.areas },
+  { id: 'respostas', rotulo: 'Respostas', href: url.respostas },
+  { id: 'escritorio', rotulo: 'O escritório', href: url.escritorio },
+  { id: 'atendimento', rotulo: 'Atendimento', href: url.atendimento },
+] as const;
+
+/** Página neutra para onde a saída rápida leva. */
+const saida = 'https://www.google.com.br/';
+---
+<header class="hdr">
+  <div class="wrap hdr-in">
+    <a class="marca" href={url.inicio}>
+      <img class="marca-mono" src="/marca/monograma-dourado-96.webp" alt="" width="36" height="42" />
+      <span class="marca-txt"><span class="marca-nome">Sales Dourado</span> <span class="marca-sub">Advogados</span><span class="sr-only">, página inicial</span></span>
+    </a>
+    <nav class="nav" aria-label="Principal">
+      {itens.map((i) => (
+        <a href={i.href} aria-current={atual === i.id ? 'page' : undefined}>{i.rotulo}</a>
+      ))}
+    </nav>
+    <div class="hdr-acoes">
+      <a class="sair" href={saida} rel="noreferrer" data-sair title="Sai deste site na hora e abre uma página neutra">
+        <Icon name="log-out" /><span>Sair</span>
+      </a>
+      <a class="btn btn-gold btn-sm" href={url.conversar}>Conversar</a>
+      <details class="menu-m">
+        <summary aria-label="Menu"><Icon name="menu" class="ico-abrir" /><Icon name="x" class="ico-fechar" /></summary>
+        <nav aria-label="Principal, no celular">
+          <ul>
+            {itens.map((i) => (
+              <li><a href={i.href} aria-current={atual === i.id ? 'page' : undefined}>{i.rotulo}</a></li>
+            ))}
+            <li><a href={saida} rel="noreferrer" data-sair>Sair deste site agora</a></li>
+          </ul>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Saída rápida: troca a página atual no histórico da aba, para o botão
+  // "voltar" não trazer o site de volta. Não apaga o histórico do navegador
+  // (isso a página /navegacao-segura/ explica, na Sessão 3).
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-sair]')) {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      location.replace(a.href);
+    });
+  }
+  // Menu do celular: um link de âncora fecha o menu ao ser escolhido.
+  const menu = document.querySelector<HTMLDetailsElement>('.menu-m');
+  menu?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('nav a')) menu.open = false;
+  });
+</script>
