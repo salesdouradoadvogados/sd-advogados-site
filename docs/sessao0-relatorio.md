@@ -2,7 +2,7 @@
 
 > **Projeto:** site público do escritório (`sd-advogados-site`)
 > **Spec de referência:** `spec-site-sd-advogados-v1.md` (10/10/2026), §10, Sessão 0
-> **Data:** 10/10/2026
+> **Data:** 10/10/2026 · **Revisão:** 11/10/2026, seção 2 refeita depois que o domínio foi liberado para o ambiente
 > **Autor:** Claude, sessão de diagnóstico, sem código
 > **Commits lidos:** portal `sd-advogados-portal-cliente@f05cb6e` (o mesmo que a spec cita) · CRM `sd-advogados-ia@e61c273`
 > **Estado:** aguardando leitura do Leilson. As decisões nº 1 e nº 6 travam a Sessão 1.
@@ -17,7 +17,7 @@ Cada afirmação traz a origem. Três marcas aparecem ao longo do texto:
 
 Regras desta sessão, cumpridas: nenhum código do site, nenhuma dependência instalada, nada alterado no portal nem no CRM. Não abri migrations, seeds, `seed-data/` nem as pastas de diagnóstico. Em um ponto (§3.3) listei só os **nomes** dos arquivos de migration, sem abrir nenhum. Nenhum dado de cliente, lead ou processo entra aqui.
 
-Limite do ambiente: a política de rede desta sessão bloqueou o domínio do escritório, os resolvedores de DNS públicos e as páginas de documentação (Astro, Cloudflare). O registro do npm ficou acessível. Por isso a seção 2 está não verificada e parte da seção 5 vem de fonte secundária.
+Limite do ambiente: em 10/10 a política de rede desta sessão bloqueou o domínio do escritório, os resolvedores de DNS públicos e as páginas de documentação (Astro, Cloudflare). O registro do npm ficou acessível. Em 11/10 o domínio foi liberado e a seção 2 foi refeita por HTTPS. Seguem sem verificação os registros DNS e o comportamento em `http://`. Parte da seção 5 vem de fonte secundária.
 
 ## Resumo
 
@@ -29,10 +29,11 @@ Limite do ambiente: a política de rede desta sessão bloqueou o domínio do esc
 - O formulário do CRM não lê nenhum parâmetro de URL. A origem é decidida pelo canal de entrada, e toda lead do formulário vira "Instagram (formulário)". Uma origem "IA" exige mudança de banco: valor novo num enum e alteração da RPC de envio.
 - O "Quem Somos" aprovado (18/07/2026) está em `QuemSomos.tsx`, no CRM, servido em `atendimento.salesdouradoadvogados.com.br/quem-somos`, numa SPA com `noindex`. Hoje nenhum buscador nem IA enxerga esse texto.
 - Astro estável: 7.3.8. Pagefind: 1.5.2. A integração oficial do Tailwind 3 (`@astrojs/tailwind`) está descontinuada e não aceita Astro 6 nem 7. Com Tailwind 3.4, o caminho é PostCSS direto, a validar no primeiro build da Sessão 1.
+- A raiz e o `www` redirecionam com 301 para `lp.`, preservando o caminho (verificado em 11/10). A raiz passa pela Cloudflare; o `www` e o `lp.` são servidos direto pela hospedagem, sem Cloudflare. A LP é WordPress com Elementor, uma página só, indexável e sem meta description. Confere com o §9.3 da spec.
 
 **O que não consegui verificar**
 
-- Nada do domínio (raiz, `www`, `lp.`): o ambiente bloqueou. Os comandos `curl.exe` estão prontos no §2.3.
+- Os registros DNS (tipo, destino, nuvem laranja ou cinza) e o comportamento em `http://`. Ficam para o painel da Cloudflare (§7.1, C1 e C2).
 
 **O que precisa de resposta**
 
@@ -119,61 +120,35 @@ A diferença entre 4,43 e 4,46 vem do arredondamento (com ou sem passagem por 8 
 
 ## 2. Domínio
 
-### 2.1 O que tentei
+### 2.1 O que rodei
 
-Rodei `curl` 8.5.0 no Linux do ambiente de nuvem (equivalente ao `curl.exe` do Windows), sem seguir redirecionamentos, em `http://` e `https://` de `salesdouradoadvogados.com.br`, `www.` e `lp.`.
+Em 10/10 o ambiente bloqueava o domínio, e esta seção ficou sem verificação. Em 11/10 o domínio foi liberado. Às 13:46 UTC rodei os mesmos comandos que esta seção propunha, com `curl` 8.5.0 no Linux do ambiente, sem seguir redirecionamentos.
 
-| Tentativa | Resultado |
-|---|---|
-| `https://` na raiz, em `www.` e em `lp.` | `403` do proxy da sessão no túnel CONNECT: o host não está liberado na política de rede deste ambiente. O proxy registrou `connect_rejected` para os três hosts às 22:52 UTC. |
-| `http://` na raiz, em `www.` e em `lp.` | `Could not resolve host`: o ambiente não resolve DNS fora do proxy. |
-| DNS público por HTTPS (`dns.google`, `cloudflare-dns.com`) | Também bloqueado (403). |
-| WebFetch de páginas de documentação | Também sem rede (`ENOTFOUND`). |
+### 2.2 Resultado (verificado)
 
-**Nada desta seção foi verificado.** Seguem sem confirmação as afirmações do §9.3 da spec: que a raiz redireciona para `lp.`, que a LP em WordPress segue no ar e indexável, e o estado do `www`. Não preenchi nada com suposição.
+| Endereço | Primeiro salto | Quem responde | Observação |
+|---|---|---|---|
+| `https://salesdouradoadvogados.com.br/` | `301` para `https://lp.salesdouradoadvogados.com.br/` | Cloudflare (`server: cloudflare`, `cf-ray`) | Preserva o caminho: `/qualquer-coisa` vai para `lp.` com o mesmo caminho. |
+| `https://www.salesdouradoadvogados.com.br/` | `301` para `https://lp.salesdouradoadvogados.com.br/` | LiteSpeed, sem `cf-ray` | Preserva o caminho. Não passa pela Cloudflare. Sem `x-redirect-by`. |
+| `https://lp.salesdouradoadvogados.com.br/` | `200` | LiteSpeed (`x-litespeed-cache: hit`), sem `cf-ray` | WordPress 7.1.3, Elementor 3.29 e Site Kit 1.153. |
 
-### 2.2 O que o código mostra (indireto, não substitui o curl)
+O destino final da raiz e do `www` é `lp.`, em `200`, com um redirecionamento só.
 
-- O CRM serve `atendimento.` e `bio.` com um único `index.html`, que traz `<meta name="robots" content="noindex" />` (`sd-advogados-ia/frontend/index.html:7`). Vale para todas as rotas, inclusive `/formulario` e `/quem-somos`. Confere com o §9.3 da spec, pelo código, não pela resposta ao vivo.
+- **robots.txt:** os da raiz e do `www` redirecionam para o de `lp.`, que é o padrão do WordPress. Ele bloqueia só `/wp-admin/` e aponta o sitemap `wp-sitemap.xml`. Não há bloco "Cloudflare Managed" nem `Disallow` para robôs de IA.
+- **Indexação da LP:** o meta robots é `max-image-preview:large`, sem `noindex` e sem `x-robots-tag`. O `canonical` aponta para ela mesma. O sitemap lista uma URL só, a home. Não há meta description, e todo o texto abaixo do `h1` está marcado como `h2`.
+- **Robôs de IA (indicativo):** em `lp.`, `OAI-SearchBot`, `GPTBot`, `ClaudeBot` e `PerplexityBot` receberam `200`. Na raiz, os quatro receberam o mesmo `301` do navegador. Uma tentativa do `GPTBot` na raiz voltou `403` e não se repetiu em três novas tentativas; não registro como bloqueio. O user-agent sozinho não prova que o robô verdadeiro passa, porque a Cloudflare também identifica por IP e assinatura.
+- **Consequência:** hoje a única página que buscadores e IAs leem como sendo o escritório é a LP de uma página, como diz o §9.3. Os controles de bots da Cloudflare só alcançam a raiz, porque `www` e `lp.` estão fora dela.
+
+### 2.3 O que segue sem verificação
+
+- **Registros DNS:** tipo, destino e nuvem de cada nome. O ambiente não resolve DNS, e os resolvedores públicos por HTTPS seguem bloqueados. Fica para o painel (§7.1, C1).
+- **Quem emite o 301 da raiz:** com a Cloudflare na frente, o cabeçalho `server` diz `cloudflare` tanto para uma regra dela quanto para um redirecionamento da origem. Fica para o painel (§7.1, C2).
+- **`http://` (porta 80):** sem proxy, o ambiente não resolve o nome. Forçando pelo túnel do proxy, as respostas vieram com `server: envoy`, sinal de um intermediário no caminho. Não uso essas respostas como evidência.
+
+### 2.4 O que o código mostra
+
+- O CRM serve `atendimento.` e `bio.` com um único `index.html`, que traz `<meta name="robots" content="noindex" />` (`sd-advogados-ia/frontend/index.html:7`). Vale para todas as rotas, inclusive `/formulario` e `/quem-somos`. Confere com o §9.3 da spec.
 - O mesmo deploy do CRM também responde em `calcpensao.` (calculadora), e o portal em `portal.` (é o endereço da `og:image` dele). A spec não cita esses dois subdomínios.
-
-### 2.3 Para fechar esta seção
-
-Duas formas, à escolha do escritório:
-
-1. **O Leilson roda os comandos abaixo no PowerShell** e manda a saída. No Windows, `curl` sozinho pode ser outro comando; use `curl.exe`.
-2. **Ou libera o domínio na política de rede do ambiente desta sessão**, e eu refaço a seção antes do commit.
-
-```powershell
-# 1. Primeiro salto de cada endereço: status, location, server, x-robots-tag, cf-ray
-curl.exe -sS -o NUL -D - --max-redirs 0 https://salesdouradoadvogados.com.br/
-curl.exe -sS -o NUL -D - --max-redirs 0 http://salesdouradoadvogados.com.br/
-curl.exe -sS -o NUL -D - --max-redirs 0 https://www.salesdouradoadvogados.com.br/
-curl.exe -sS -o NUL -D - --max-redirs 0 http://www.salesdouradoadvogados.com.br/
-curl.exe -sS -o NUL -D - --max-redirs 0 https://lp.salesdouradoadvogados.com.br/
-
-# 2. Destino final da raiz e do www
-curl.exe -sS -L -o NUL -w "%{url_effective}  %{http_code}  %{num_redirects}\n" https://salesdouradoadvogados.com.br/
-curl.exe -sS -L -o NUL -w "%{url_effective}  %{http_code}  %{num_redirects}\n" https://www.salesdouradoadvogados.com.br/
-
-# 3. robots.txt de cada host
-curl.exe -sS https://salesdouradoadvogados.com.br/robots.txt
-curl.exe -sS https://www.salesdouradoadvogados.com.br/robots.txt
-curl.exe -sS https://lp.salesdouradoadvogados.com.br/robots.txt
-
-# 4. meta robots e gerador da LP
-curl.exe -sS -L https://lp.salesdouradoadvogados.com.br/ | findstr /i "robots generator"
-
-# 5. (indicativo) a LP responde a um robô de busca de IA?
-curl.exe -sS -o NUL -w "%{http_code}\n" -A "Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)" https://lp.salesdouradoadvogados.com.br/
-```
-
-O que anotar:
-
-- A linha de status de cada salto (`HTTP/1.1 301`, `302`, `200`...), `location:`, `server:`, `x-robots-tag:`, `cf-ray:` (se existir, a Cloudflare está na frente) e `x-redirect-by:` (se disser WordPress, o redirecionamento sai do WordPress, não da Cloudflare).
-- No `robots.txt`: se aparece um bloco "Cloudflare Managed", o robots.txt gerenciado está ligado; e quais robôs têm `Disallow`.
-- Na LP: o conteúdo de `<meta name="robots">` e do `generator`.
-- No comando 5: um `403` sugere bloqueio por user-agent. Um `200` não prova que o robô verdadeiro passa, porque a Cloudflare o identifica também por IP e assinatura.
 
 ## 3. Formulário do CRM
 
@@ -285,7 +260,7 @@ Versões consultadas no registro do npm em 10/10/2026 (fonte primária, acessív
 | D12 | §9.2: copiar a regra do `_headers` do portal. | A regra mira `/assets/*`; o Astro gera `/_astro/*` (a confirmar). | Ajustar o caminho; manter `/pagefind/*` no catch-all. |
 | D13 | §4.2: `muted-foreground` sobre `ivory` = 4,43:1. | Recalculado: 4,46:1, abaixo de 4,5 nos dois casos. O `ClientFooter` do portal usa esse par. | A regra não muda. Não copiar o rodapé do portal como está. |
 | D14 | §3.3: "ficha com contexto" do §8 do design system. | É receita de modal do admin (lateral parada dentro do modal; componente React no celular). | Adaptar para página: `aside` com `position: sticky`; no celular, bloco compacto no topo. |
-| D15 | §9.3: estado do domínio em 10/10/2026. | Não verificável deste ambiente. Pelo código, `atendimento.` e `bio.` têm `noindex`. Existem também `calcpensao.` e `portal.`, que a spec não cita. | O Leilson roda os comandos do §2.3 (ou o domínio é liberado para o ambiente) e confere os dois subdomínios no DNS (§7.1, C1). |
+| D15 | §9.3: estado do domínio em 10/10/2026. | Verificado em 11/10 (§2.2): a raiz e o `www` redirecionam com 301 para `lp.`, que segue no ar e indexável. O `www` e o `lp.` não passam pela Cloudflare. Pelo código, `atendimento.` e `bio.` têm `noindex`. Existem também `calcpensao.` e `portal.`, que a spec não cita. | Conferir os registros DNS e as regras no painel (§7.1, C1 e C2). No go-live, o `www` precisa entrar na Cloudflare ou apontar para o novo host; do contrário, o redirecionamento dele continua dependendo da hospedagem da LP. |
 | D16 | Decisão nº 12: fotos fornecidas pelo Leilson; sem elas, só tipografia. | Já existe uma foto real dele no CRM (`leilson-bio.webp`, ~19 KB). | Perguntar se pode ser usada; a resolução talvez não sirva para a página do advogado. |
 
 ## 7. Perguntas para o Leilson
@@ -299,8 +274,8 @@ Tudo o que depende de painel. O nome exato dos menus pode variar com o idioma e 
 | C1 | dash.cloudflare.com → a conta → zona `salesdouradoadvogados.com.br` → **DNS → Registros** | Para `@` (raiz), `www`, `lp`, `atendimento`, `bio`, `calcpensao` e `portal`: o tipo (A, AAAA, CNAME), o destino e se a nuvem está laranja (passa pela Cloudflare) ou cinza (só DNS). Se existem registros TXT começando com `google-site-verification=` ou `MS=` (sinais de verificação do Search Console e do Bing); basta dizer se existem. |
 | C2 | Na mesma zona → **Regras** (procure "Redirect Rules", "Page Rules" e "Bulk Redirects") | Qualquer regra que pegue a raiz ou o `www`: o que ela casa, o destino, o código (301 ou 302) e se preserva o caminho. Se não houver regra, anote isso: aí o redirecionamento sai do servidor da LP. |
 | C3 | O registro DNS de `lp` (do C1) | Para onde aponta (a hospedagem do WordPress). Serve para a decisão nº 4. |
-| C4 | **Segurança → Bots** (procure "Bloquear bots de IA" ou "Block AI bots", e "Bot Fight Mode") e o item **"AI Crawl Control"** do menu lateral | O plano da zona (Free, Pro...). O estado de cada bloqueio e o escopo, se houver (todas as páginas, só páginas com anúncio, desligado). No AI Crawl Control, como aparecem `OAI-SearchBot`, `ChatGPT-User`, `Claude-SearchBot`, `Claude-User`, `PerplexityBot`, `GPTBot`, `ClaudeBot`, `Google-Extended`, `CCBot`, `Googlebot` e `Bingbot`: permitido ou bloqueado. Segundo o changelog de bots da Cloudflare (via busca, não aberto), domínios novos a partir de 15/09/2026 recebem bloqueio padrão de Treino e Agente em páginas com anúncio; vale ver se aparece algo assim na zona. |
-| C5 | Procure **"robots.txt gerenciado"** ("managed robots.txt", "Instruct AI bot traffic with robots.txt") em Bots ou no AI Crawl Control | Ligado ou desligado. A spec quer desligado (§9.4). Confirmação por fora: quando está ligado, o `robots.txt` do comando 3 do §2.3 começa com um bloco "Cloudflare Managed". |
+| C4 | **Segurança → Bots** (procure "Bloquear bots de IA" ou "Block AI bots", e "Bot Fight Mode") e o item **"AI Crawl Control"** do menu lateral | O plano da zona (Free, Pro...). O estado de cada bloqueio e o escopo, se houver (todas as páginas, só páginas com anúncio, desligado). No AI Crawl Control, como aparecem `OAI-SearchBot`, `ChatGPT-User`, `Claude-SearchBot`, `Claude-User`, `PerplexityBot`, `GPTBot`, `ClaudeBot`, `Google-Extended`, `CCBot`, `Googlebot` e `Bingbot`: permitido ou bloqueado. Segundo o changelog de bots da Cloudflare (via busca, não aberto), domínios novos a partir de 15/09/2026 recebem bloqueio padrão de Treino e Agente em páginas com anúncio; vale ver se aparece algo assim na zona. Hoje esses controles só alcançam a raiz, porque o `www` e o `lp.` não passam pela Cloudflare (§2.2). |
+| C5 | Procure **"robots.txt gerenciado"** ("managed robots.txt", "Instruct AI bot traffic with robots.txt") em Bots ou no AI Crawl Control | Ligado ou desligado. A spec quer desligado (§9.4). Em 11/10, o `robots.txt` da raiz redirecionou para o da LP, sem bloco "Cloudflare Managed" (§2.2). Isso não prova que a opção está desligada, porque o redirecionamento acontece antes. |
 | C6 | **Workers e Pages** (ou "Compute") → lista de projetos | O nome de cada projeto, os domínios personalizados de cada um, o branch de produção e, em Configurações → Build, a versão da imagem de build e do Node. Se já existe projeto com nome parecido com `sd-advogados-site`. |
 | C7 | **Analytics e Logs → Web Analytics** | Se há algum site configurado (decisão nº 7). |
 
@@ -336,7 +311,7 @@ A spec (P5 e L3) aponta para A. Responder: A ou B.
 
 ### 7.5 Outras perguntas que surgiram
 
-1. **Domínio:** rodar os comandos do §2.3 e mandar a saída, ou liberar o domínio para o ambiente desta sessão, para que eu refaça a seção 2.
+1. **Domínio:** resolvido em 11/10, com o domínio liberado (§2.2). Faltam só os itens de painel C1 e C2.
 2. **Logo em vetor:** quem fez a identidade visual tem o arquivo original (AI, SVG, PDF ou EPS) do monograma e da assinatura?
 3. **Foto:** a `leilson-bio.webp` do CRM pode ser usada no site, ou virá uma foto dedicada (decisão nº 12)?
 4. **Spec no repositório:** a spec pode ser versionada em `docs/` num commit separado (D1)?
