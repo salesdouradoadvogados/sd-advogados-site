@@ -1,0 +1,165 @@
+---
+// Início (spec v2, §3.1; prévia aprovada em 11/10/2026).
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import Busca from '../components/Busca.astro';
+import { site } from '../site.config';
+import { pautaDeSituacoes, postsDeExemplo } from '../data/pauta';
+import { situacoes, areas, url } from '../lib/conteudo';
+
+const existentes = new Map((await situacoes()).map((s) => [s.id, s]));
+const areasComPagina = new Set((await areas()).map((a) => a.id));
+const oab = site.responsavel.oab.valor;
+
+/** "10 mil+" vira "10 mil" e o "+" sobrescrito, como na prévia. */
+const partirNumero = (v: string) => (v.endsWith('+') ? { corpo: v.slice(0, -1), mais: true } : { corpo: v, mais: false });
+---
+<Base titulo="Direito de família, dedicado à mulher" descricao={site.descricaoCurta}>
+  <section class="hero">
+    <div class="wrap grid-7-5">
+      <div>
+        <p class="eyebrow">Advocacia de família · {site.atendimento.cidade} e todo o Brasil</p>
+        <h1 class="display">Você não precisa atravessar isso sozinha.</h1>
+        <p class="lead muted">Escritório dedicado à defesa da mulher em divórcio, guarda, pensão alimentícia e convivência. Presencial em {site.atendimento.cidade} e online em qualquer cidade do Brasil.</p>
+        <div class="cta-row">
+          <a class="btn btn-gold" href={url.conversar}>Falar com o escritório</a>
+          <a class="arrow" href="#situacoes">Entrar pela sua situação <Icon name="arrow-right" /></a>
+        </div>
+        <ul class="selos">
+          <li>{oab}</li>
+          <li>Advogado desde {site.responsavel.desde.valor}</li>
+          <li>Respostas revisadas e datadas</li>
+        </ul>
+      </div>
+      <div class="hero-foto">
+        <div class="foto-placa"></div>
+        <img class="foto-img" src="/img/leilson-provisoria.webp" alt={`${site.responsavel.nome}, de terno azul, braços cruzados`} width="420" height="642" fetchpriority="high" decoding="async" />
+        <span class="foto-legenda">{site.responsavel.nome} · fundador</span>
+      </div>
+    </div>
+    <div class="hero-base"></div>
+  </section>
+
+  <section class="sec white" id="situacoes" aria-labelledby="situacoes-titulo">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Comece por aqui</p>
+        <h2 class="h2" id="situacoes-titulo">O que está acontecendo?</h2>
+        <p class="lead muted">Entre pela situação que você está vivendo, dita com as suas palavras. Cada uma abre o caminho, passo a passo, com as respostas no lugar certo.</p>
+      </div>
+      <Busca />
+      <ol class="sit-grid">
+        {pautaDeSituacoes.map((p, i) => {
+          const n = String(i + 1).padStart(2, '0');
+          const s = existentes.get(p.slug);
+          const miolo = (
+            <>
+              <span class="sit-n" aria-hidden="true">{n}</span>
+              <span><span class="sit-t">{s?.data.titulo ?? p.titulo}</span><span class="sit-d">{p.tema}</span></span>
+            </>
+          );
+          return (
+            <li>
+              {s ? (
+                <a class="sit" href={url.situacao(p.slug)}>{miolo}<Icon name="arrow-right" /></a>
+              ) : (
+                <div class="sit">{miolo}<span class="em-prep">em preparação</span></div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      <p class="sit-nota">Não é nenhuma dessas? <a href="#busca">Busque com suas palavras</a> ou <a href={url.conversar}>fale com o escritório</a>.</p>
+    </div>
+  </section>
+
+  <section class="sec navy" id="areas" aria-labelledby="areas-titulo">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Em que atuamos</p>
+        <h2 class="h2" id="areas-titulo">Direito de família, com a mulher no centro.</h2>
+        <p class="lead muted">Seis frentes, todas ligadas às situações e às respostas deste site. Cada área diz o que o escritório faz, como funciona e o que esperar.</p>
+      </div>
+      <div class="areas">
+        {site.areas.map((a) =>
+          areasComPagina.has(a.slug) ? (
+            <a class="area" href={url.area(a.slug)}>
+              <h3 class="h3">{a.titulo}</h3>
+              <p>{a.resumo}</p>
+              <span class="arrow">Ver a área <Icon name="arrow-right" /></span>
+            </a>
+          ) : (
+            <div class="area">
+              <h3 class="h3">{a.titulo}</h3>
+              <p>{a.resumo}</p>
+              <span class="em-prep">Página em preparação</span>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="atendimento" aria-labelledby="atendimento-titulo">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Como funciona o atendimento</p>
+        <h2 class="h2" id="atendimento-titulo">Quatro passos, sem surpresa.</h2>
+        <p class="lead muted">Do primeiro contato à decisão sobre o próximo passo. Presencial em {site.atendimento.cidade} ou online, de qualquer cidade.</p>
+      </div>
+      <ol class="passos">
+        <li class="passo"><span class="num" aria-hidden="true">01</span><h3 class="h4">Você conta o que está acontecendo</h3><p>No formulário de atendimento, em cerca de três minutos: nome, WhatsApp e o essencial do caso.</p></li>
+        <li class="passo"><span class="num" aria-hidden="true">02</span><h3 class="h4">A equipe entra em contato</h3><p>Pelo WhatsApp, para entender a situação e alinhar os próximos passos. É a equipe do escritório, não um robô.</p></li>
+        <li class="passo"><span class="num" aria-hidden="true">03</span><h3 class="h4">Consultoria estratégica com o advogado</h3><p>Uma reunião de análise do caso, com a orientação sobre como o processo começa e o que vem depois. A consultoria tem custo, informado antes de agendar.</p></li>
+        <li class="passo"><span class="num" aria-hidden="true">04</span><h3 class="h4">Você decide o próximo passo</h3><p>Com clareza sobre o caminho, os documentos e os prazos. Sem pressa e sem promessa de resultado.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec white" aria-labelledby="quem-titulo">
+    <div class="wrap">
+      <div class="quem">
+        <div class="quem-foto"><div class="placa"></div><img src="/img/leilson-provisoria.webp" alt={site.responsavel.nome} width="250" height="382" loading="lazy" decoding="async" /></div>
+        <div>
+          <p class="eyebrow">Quem responde</p>
+          <h2 class="h2" id="quem-titulo">{site.responsavel.nome}</h2>
+          <p class="cargo">Advogado · {oab} · Fundador</p>
+          <p>Advogado desde {site.responsavel.desde.valor}. Antes do escritório, passou pela Defensoria Pública e por anos de atuação no Ministério Público, em Direito de Família, sempre na linha de frente da defesa de quem mais precisa de proteção.</p>
+          <p>Revisa cada resposta publicada neste site. A data da revisão fica à vista em cada página, e o que muda fica registrado no histórico de alterações.</p>
+          <div class="cta-row" style="margin-top: 28px"><a class="arrow" href={url.escritorio}>Conheça o escritório <Icon name="arrow-right" /></a></div>
+        </div>
+      </div>
+      <div class="nums">
+        {site.numeros.map((n) => {
+          const { corpo, mais } = partirNumero(n.valor);
+          return (
+            <div>
+              <span class="num-v">{corpo}{mais && <sup>+</sup>}</span>
+              <span class="num-l">{n.rotulo}{!n.confirmado && <span class="a-confirmar">fonte a confirmar</span>}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p class="nums-nota">Os números têm fonte e data na <a href={url.ficha}>ficha do escritório</a>.</p>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="posts-titulo">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Além do post</p>
+        <h2 class="h2" id="posts-titulo">Viu no Instagram? A explicação inteira está aqui.</h2>
+        <p class="lead muted">Cada post das redes tem uma tese. Aqui ela ganha a base legal, as exceções e as perguntas que ele não cabia responder.</p>
+      </div>
+      <div class="posts">
+        {postsDeExemplo.map((p) => (
+          <div class="post">
+            <span class="tag">{p.formato}</span>
+            <span class="tese">{p.tese}</span>
+            <span class="em-prep">Explicação em preparação</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
