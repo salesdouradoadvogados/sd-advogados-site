@@ -121,3 +121,12 @@ com um ano, sem `immutable`; `*.pages.dev` com `noindex`; domínio próprio sem.
 - iPhone e Android reais. O celular foi emulado no Chromium.
 - Leitor de tela real. A estrutura foi conferida pelo axe e pelo teclado.
 - Impressão em papel. A folha foi gerada em PDF.
+
+## 6. Prévia navegável
+
+Enquanto o projeto do Cloudflare Pages não existe, o build foi publicado como
+página privada: https://claude.ai/artifact/6LWnxZwCososMhNsXzLTcw. Para caber
+no visualizador, a cópia publicada troca os caminhos absolutos por relativos e
+renomeia a pasta `/_astro/` para `/astro/`. O visualizador não abre a janela
+de impressão, então os botões "Imprimir" não fazem nada ali; a busca não foi
+conferida dentro dele. As duas funcionam no build, como mostra o §2.
