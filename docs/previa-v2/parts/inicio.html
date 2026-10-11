@@ -1,0 +1,138 @@
+<section class="hero">
+<div class="wrap grid-7-5">
+<div class="hero-txt">
+<p class="eyebrow">Advocacia de família · Ji-Paraná e todo o Brasil</p>
+<h1 class="display">Você não precisa atravessar isso sozinha.</h1>
+<p class="lead muted">Escritório dedicado à defesa da mulher em divórcio, guarda, pensão alimentícia e convivência. Presencial em Ji-Paraná e online em qualquer cidade do Brasil.</p>
+<div class="cta-row">
+<a class="btn btn-gold" href="#conversar">Falar com o escritório</a>
+<a class="arrow" href="#situacoes">Entrar pela sua situação <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a>
+</div>
+<ul class="selos">
+<li>OAB/RO 8970</li>
+<li>Advogado desde 2017</li>
+<li>Respostas revisadas e datadas</li>
+</ul>
+</div>
+<div class="hero-foto">
+<div class="foto-placa"></div>
+<img class="foto-img" src="%%FOTO%%" alt="Leilson Sales Dourado, de terno azul, braços cruzados">
+<span class="foto-legenda">Leilson Sales Dourado · fundador</span>
+</div>
+</div>
+<div class="hero-base"></div>
+</section>
+
+<section class="sec white" id="situacoes">
+<div class="wrap">
+<div class="sec-head">
+<p class="eyebrow">Comece por aqui</p>
+<h2 class="h2">O que está acontecendo?</h2>
+<p class="lead muted">Entre pela situação que você está vivendo, dita com as suas palavras. Cada uma abre o caminho, passo a passo, com as respostas no lugar certo.</p>
+</div>
+<div class="busca" id="busca">
+<div class="busca-campo">
+<svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<label for="busca-campo" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Busque com suas palavras</label>
+<input id="busca-campo" type="search" value="{{q}}" onChange="{{mudarBusca}}" placeholder="Busque com suas palavras: prisão, gravidez, mudar de cidade…">
+<sc-if value="{{temBusca}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{limparBusca}}" aria-label="Limpar a busca"><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button></sc-if>
+</div>
+<sc-if value="{{temResultados}}" hint-placeholder-val="{{false}}">
+<div class="busca-res">
+<sc-for list="{{resultados}}" as="r" hint-placeholder-count="3">
+<a href="{{r.href}}"><span class="q">{{r.pergunta}}</span><span class="s">{{r.situacao}}</span></a>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{semResultado}}" hint-placeholder-val="{{false}}">
+<div class="busca-res"><p class="busca-vazio">Nenhuma pergunta com essas palavras. Veja as situações abaixo ou fale com o escritório.</p></div>
+</sc-if>
+</div>
+<ol class="sit-grid">
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">01</span><span><span class="sit-t">Ele parou de pagar a pensão</span><span class="sit-d">Cobrança, protesto e prisão civil</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">02</span><span><span class="sit-t">Nunca pedi pensão e quero pedir</span><span class="sit-d">Como pedir e a partir de quando vale</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">03</span><span><span class="sit-t">A pensão não cobre os gastos</span><span class="sit-d">Revisão do valor e despesas extras</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">04</span><span><span class="sit-t">Ele quer diminuir a pensão</span><span class="sit-d">O que ele precisa provar</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">05</span><span><span class="sit-t">Ele esconde o que ganha</span><span class="sit-d">Como a renda dele é apurada</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">06</span><span><span class="sit-t">Quero me separar</span><span class="sit-d">Divórcio com ou sem acordo</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">07</span><span><span class="sit-t">Ele ameaça tirar a guarda de mim</span><span class="sit-d">O que a guarda decide e o que não decide</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">08</span><span><span class="sit-t">Ele não cumpre as visitas</span><span class="sit-d">Convivência combinada e descumprida</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">09</span><span><span class="sit-t">Estou grávida e ele sumiu</span><span class="sit-d">Alimentos na gravidez e reconhecimento</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">10</span><span><span class="sit-t">Quero me mudar de cidade com meu filho</span><span class="sit-d">Autorização para mudar de estado</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">11</span><span><span class="sit-t">Vivemos juntos sem casar</span><span class="sit-d">União estável: direitos e partilha</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+<li><a class="sit" href="{{L.situacao}}"><span class="sit-n">12</span><span><span class="sit-t">Tenho medo dele</span><span class="sit-d">Medida protetiva e os primeiros passos</span></span><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></li>
+</ol>
+<p class="sit-nota">Não é nenhuma dessas? <a href="#busca">Busque com suas palavras</a> ou <a href="#conversar">fale com o escritório</a>.</p>
+</div>
+</section>
+
+<section class="sec navy" id="areas">
+<div class="wrap">
+<div class="sec-head">
+<p class="eyebrow">Em que atuamos</p>
+<h2 class="h2">Direito de família, com a mulher no centro.</h2>
+<p class="lead muted">Seis frentes, todas ligadas às situações e às respostas deste site. Cada área diz o que o escritório faz, como funciona e o que esperar.</p>
+</div>
+<div class="areas">
+<a class="area" href="{{L.area}}"><h3 class="h3">Divórcio</h3><p>Consensual ou litigioso, no cartório ou na Justiça, com a partilha e a guarda tratadas junto.</p><span class="arrow">Ver a área <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+<a class="area" href="{{L.area}}"><h3 class="h3">Guarda</h3><p>Compartilhada ou unilateral: o que cada uma decide sobre a vida dos filhos e o que não muda com ela.</p><span class="arrow">Ver a área <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+<a class="area" href="{{L.area}}"><h3 class="h3">Visitas e convivência</h3><p>O regime de convivência, o descumprimento e as mudanças que a vida pede com o tempo.</p><span class="arrow">Ver a área <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+<a class="area" href="{{L.area}}"><h3 class="h3">Pensão alimentícia</h3><p>Pedido, revisão e cobrança, inclusive os meios que a lei dá para fazer o pagamento acontecer.</p><span class="arrow">Ver a área <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+<a class="area" href="{{L.area}}"><h3 class="h3">Autorização para viagem ao exterior</h3><p>Quando a autorização do outro genitor é exigida e o que fazer quando ele se recusa a dar.</p><span class="arrow">Ver a área <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+<a class="area" href="{{L.area}}"><h3 class="h3">Autorização para mudança de estado</h3><p>Mudar de cidade ou de estado com a criança sem perder a guarda nem descumprir o que foi combinado.</p><span class="arrow">Ver a área <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+</div>
+</div>
+</section>
+
+<section class="sec" id="atendimento">
+<div class="wrap">
+<div class="sec-head">
+<p class="eyebrow">Como funciona o atendimento</p>
+<h2 class="h2">Quatro passos, sem surpresa.</h2>
+<p class="lead muted">Do primeiro contato à decisão sobre o próximo passo. Presencial em Ji-Paraná ou online, de qualquer cidade.</p>
+</div>
+<ol class="passos">
+<li class="passo"><span class="passo-n"></span><span class="num">01</span><h3 class="h4">Você conta o que está acontecendo</h3><p>No formulário de atendimento, em cerca de três minutos: nome, WhatsApp e o essencial do caso.</p></li>
+<li class="passo"><span class="passo-n"></span><span class="num">02</span><h3 class="h4">A equipe entra em contato</h3><p>Pelo WhatsApp, para entender a situação e alinhar os próximos passos. É a equipe do escritório, não um robô.</p></li>
+<li class="passo"><span class="passo-n"></span><span class="num">03</span><h3 class="h4">Consultoria estratégica com o advogado</h3><p>Uma reunião de análise do caso, com a orientação sobre como o processo começa e o que vem depois. A consultoria tem custo, informado antes de agendar.</p></li>
+<li class="passo"><span class="passo-n"></span><span class="num">04</span><h3 class="h4">Você decide o próximo passo</h3><p>Com clareza sobre o caminho, os documentos e os prazos. Sem pressa e sem promessa de resultado.</p></li>
+</ol>
+</div>
+</section>
+
+<section class="sec white">
+<div class="wrap">
+<div class="quem">
+<div class="quem-foto"><div class="placa"></div><img src="%%FOTO%%" alt="Leilson Sales Dourado"></div>
+<div>
+<p class="eyebrow">Quem responde</p>
+<h2 class="h2">Leilson Sales Dourado</h2>
+<p class="cargo">Advogado · OAB/RO 8970 · Fundador</p>
+<p>Advogado desde 2017. Antes do escritório, passou pela Defensoria Pública e por anos de atuação no Ministério Público, em Direito de Família, sempre na linha de frente da defesa de quem mais precisa de proteção.</p>
+<p>Revisa cada resposta publicada neste site. A data da revisão fica à vista em cada página, e o que muda fica registrado no histórico de alterações.</p>
+<div class="cta-row" style="margin-top: 28px"><a class="arrow" href="{{L.escritorio}}">Conheça o escritório <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></a></div>
+</div>
+</div>
+<div class="nums">
+<div><span class="num-v">10 mil<sup>+</sup></span><span class="num-l">processos de Direito de Família acompanhados</span></div>
+<div><span class="num-v">7 anos</span><span class="num-l">no Ministério Público, antes de advogar só para mães</span></div>
+<div><span class="num-v">2017</span><span class="num-l">ano em que o advogado responsável passou a atuar</span></div>
+</div>
+<p class="nums-nota">Os números têm fonte e data na <a href="{{L.escritorio}}#ficha" style="color: var(--navy)">ficha do escritório</a>.</p>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<div class="sec-head">
+<p class="eyebrow">Além do post</p>
+<h2 class="h2">Viu no Instagram? A explicação inteira está aqui.</h2>
+<p class="lead muted">Cada post das redes tem uma tese. Aqui ela ganha a base legal, as exceções e as perguntas que ele não cabia responder.</p>
+</div>
+<div class="posts">
+<a class="post" href="{{L.resposta}}"><span class="tag">Carrossel</span><span class="tese">Guarda compartilhada não quer dizer metade do tempo com cada um.</span><span class="arrow">Ler a explicação <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+<a class="post" href="{{L.resposta}}"><span class="tag">Reels</span><span class="tese">Acordo de pensão feito sem a Justiça é mais difícil de cobrar.</span><span class="arrow">Ler a explicação <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+<a class="post" href="{{L.resposta}}"><span class="tag">Imagem</span><span class="tese">Quem recebe a pensão é a criança, mesmo que o dinheiro passe pela mãe.</span><span class="arrow">Ler a explicação <svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span></a>
+</div>
+</div>
+</section>
